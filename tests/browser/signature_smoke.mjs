@@ -1,0 +1,78 @@
+import assert from 'node:assert/strict';
+import {mkdirSync,writeFileSync} from 'node:fs';
+import path from 'node:path';
+
+export async function checkSignature({evaluate,send,waitFor,click,viewport,values,restart,savedEvent}){
+  const folder=path.resolve('.artifacts/intelligence');mkdirSync(folder,{recursive:true});
+  async function capture(name,selector){await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'});document.getElementById('toast').hidden=true`);await new Promise(r=>setTimeout(r,500));const shot=await send('Page.captureScreenshot',{format:'png'});writeFileSync(path.join(folder,name+'.png'),Buffer.from(shot.data,'base64'));}
+  const id=await evaluate("JSON.parse(localStorage.getItem('eventra:selected-event'))"),before=await savedEvent(id);
+  await viewport(1440);await send('Emulation.setEmulatedMedia',{features:[]});
+  await evaluate(`location.hash='#/event/${id}/ask'`);await waitFor("!document.getElementById('panel-ask').hidden");
+  const scenarios=await evaluate(`fetch('/api/events/${id}/scenarios').then(r=>r.json()).then(r=>r.length)`);
+  await values({'decision-question':'Reduce budget by 10%'});await click('#decision-analyze');
+  await waitFor("document.querySelectorAll('#decision-cards article').length>0&&!document.getElementById('decision-analyze').disabled");
+  assert.deepEqual(await savedEvent(id),before);
+  assert.equal(await evaluate(`fetch('/api/events/${id}/scenarios').then(r=>r.json()).then(r=>r.length)`),scenarios);
+  await capture('grounded-decisions','#decision-cards');
+  await click('#decision-cards article:first-child .ghost');await waitFor("!document.getElementById('panel-scenarios').hidden&&!document.getElementById('submit-btn').disabled");
+  assert(await evaluate("document.getElementById('scenario-apply').disabled"));await click('#scenario-discard');
+  await waitFor("document.getElementById('scenario-status').textContent==='Preview discarded. Saved event unchanged.'");
+  assert.deepEqual(await savedEvent(id),before);
+  await evaluate(`location.hash='#/event/${id}/vendors'`);await waitFor("!document.getElementById('panel-vendors').hidden");
+  await values({'analyzer-category':'catering'});
+  const vendor=before.vendors.find(item=>before.plan.vendors[item.group_index].key==='catering');
+  await values({'analyzer-vendor':vendor.id});
+  const text=`Vendor: Garden Kitchen\nCurrency: USD\nItem: Dinner | 1 | 1000\nTax: 0\nFee: 0\nAll-in total: 1000\nDeposit: 200\nPayment: ${before.details.event_date} | 1000\nCancellation: Deposit retained\nInclusions: Dinner and service\nOvertime: Not included`;
+  const document=await send('DOM.getDocument'),fileNode=await send('DOM.querySelector',{nodeId:document.root.nodeId,selector:'#analyzer-file'});
+  const badFile=path.join(folder,'unsupported.pdf'),goodFile=path.join(folder,'uploaded-quote.txt');writeFileSync(badFile,'%PDF-1.7 invalid');writeFileSync(goodFile,text);
+  await send('DOM.setFileInputFiles',{nodeId:fileNode.nodeId,files:[badFile]});await waitFor("!document.getElementById('analyzer-form').querySelector('[role=alert]').hidden");
+  assert.equal(await evaluate("document.getElementById('analyzer-text').value"),'');
+  await send('DOM.setFileInputFiles',{nodeId:fileNode.nodeId,files:[goodFile]});await waitFor(`document.getElementById('analyzer-text').value===${JSON.stringify(text)}`);
+  await click('#analyzer-analyze');
+  await waitFor("document.querySelectorAll('#analyzer-results article').length===1&&!document.getElementById('analyzer-analyze').disabled");
+  await values({'analyzer-text':text.replaceAll('1000','1250').replace('Garden Kitchen','Garden Alternative')});await click('#analyzer-analyze');
+  await waitFor("document.querySelectorAll('#analyzer-results article').length===2&&!document.getElementById('analyzer-analyze').disabled");
+  await values({'analyzer-text':text.replace('Currency: USD','Currency: INR').replace('Garden Kitchen','Different-currency source')});await click('#analyzer-analyze');
+  await waitFor("document.querySelectorAll('#analyzer-results article').length===3&&!document.getElementById('analyzer-analyze').disabled");
+  assert(await evaluate("document.querySelector('#analyzer-results article:last-child').textContent.includes('₹')"));
+  assert(await evaluate("document.querySelector('#analyzer-results article:last-child [data-quote-record]').disabled"));
+  assert.deepEqual(await savedEvent(id),before);
+  assert(await evaluate("document.querySelector('#analyzer-results article:first-of-type [data-quote-record]').disabled"));
+  await evaluate("document.querySelector('#analyzer-results article:first-of-type details').open=true");await capture('quote-source-comparison','#analyzer-results');
+  await values({'analyzer-record-as':'commitment'});await click('#analyzer-results article:first-of-type input[type=checkbox]');await click('#analyzer-results article:first-of-type [data-quote-record]');
+  await waitFor("document.getElementById('analyzer-status').textContent.includes('recorded and verified')&&!document.getElementById('submit-btn').disabled");
+  const quoted=await savedEvent(id),expense=quoted.expenses.find(item=>item.category_key==='catering'&&!item.cancelled);
+  assert.equal(expense.committed_amount,'1000.00');assert.equal(expense.quoted_amount,'1000.00');assert.equal(expense.paid_amount,'0.00');assert.equal(expense.vendor_id,vendor.id);
+  assert(expense.notes.includes('uploaded-quote.txt'));
+  assert.equal(quoted.budget_summary.actual_spending,before.budget_summary.actual_spending);
+  await evaluate(`location.hash='#/event/${id}/ideas'`);await waitFor("!document.getElementById('panel-ideas').hidden");
+  await values({'design-brief':'Warm candlelight, step-free routes, reusable fabric','design-colors':'#f2e5d4, #59453c'});await click('#design-generate');
+  await waitFor("document.querySelectorAll('#design-concepts article').length===3&&!document.getElementById('design-generate').disabled");
+  assert(await evaluate("document.getElementById('design-concepts').textContent.includes('LOCAL RECIPES')"));
+  await capture('design-moodboards','#design-concepts');await click('#design-concepts article:first-child .ghost');
+  await waitFor("document.getElementById('design-preferred').textContent.includes('Preferred:')&&!document.getElementById('submit-btn').disabled");
+  const preferred=await evaluate(`fetch('/api/events/${id}/intelligence/design/preferred').then(r=>r.json())`);
+  assert.equal(preferred.concept.style,'warm');assert.deepEqual(preferred.concept.palette,['#f2e5d4','#59453c']);assert.deepEqual(await savedEvent(id),quoted);
+  await evaluate(`location.hash='#/event/${id}/timeline'`);await waitFor("!document.getElementById('panel-timeline').hidden");await click('#delay-analyze');
+  await waitFor("document.getElementById('delay-results').textContent.includes('No prerequisite links')&&!document.getElementById('delay-analyze').disabled");
+  assert.deepEqual(await savedEvent(id),quoted);await capture('timeline-impact','#timeline-intelligence');
+  await evaluate(`location.hash='#/event/${id}/rescue'`);await waitFor("!document.getElementById('panel-rescue').hidden");
+  await values({'rescue-kind':'vendor_cancellation','rescue-description':'Catering contract is cancelled; review the retained obligation.','rescue-vendor':vendor.id,'rescue-fee':'0','rescue-quote-a':'1100','rescue-quote-b':'1250','rescue-confirm-a':true,'rescue-confirm-b':true});
+  await click('#rescue-assess');await waitFor("document.querySelectorAll('#rescue-options .recovery-option').length===2&&!document.getElementById('rescue-assess').disabled");
+  assert(await evaluate("document.getElementById('rescue-options').textContent.includes('INDETERMINATE')"));
+  await click('#rescue-options .primary');assert(await evaluate("document.getElementById('scenario-apply').disabled"));
+  assert.deepEqual(await savedEvent(id),quoted);
+  await restart();assert.deepEqual(await savedEvent(id),quoted);
+  assert.deepEqual(await evaluate(`fetch('/api/events/${id}/intelligence/design/preferred').then(r=>r.json())`),preferred);
+  for(const width of [390,768]){
+    await viewport(width);await evaluate(`location.hash='#/event/${id}/ideas'`);await waitFor("!document.getElementById('panel-ideas').hidden");
+    await values({'design-brief':'Warm candlelight and reused decor'});await click('#design-generate');await waitFor("document.querySelectorAll('#design-concepts article').length===3&&!document.getElementById('design-generate').disabled");
+    await waitFor("document.getElementById('design-preferred').textContent.includes('Saved brief: Warm candlelight, step-free routes, reusable fabric')");
+    assert(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));
+    await capture(`design-${width}`,'#design-studio');
+  }
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  assert.equal(await evaluate("getComputedStyle(document.querySelector('.concept-vault')).animationName"),'none');
+  console.log('PASS grounded decision → isolated review/discard, two source-backed quote comparisons → reviewed commitment with no fabricated payment');
+  console.log('PASS budget-linked design/palette persistence, read-only delay analysis, quote-linked cancellation stays indeterminate, browser/server restart, responsive/reduced motion; .artifacts/intelligence');
+}

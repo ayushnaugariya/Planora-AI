@@ -1,0 +1,89 @@
+# Planora AI: trustworthy decision loop
+
+## Stage A: inspected baseline and bounded scope
+
+27 October 2026, `D:\Projects\eventra`. Git metadata is absent. `.planora-autonomous-baseline-20261026T210643Z.zip` preserves 118 non-secret source/document files before implementation. Runtime SQLite was opened read-only: schema 2, `events` and `scenarios`. No database migration/reset is planned. Existing default data and running development server remain separate from temporary test databases.
+
+Fresh Python baseline: **496 passed, 2 warnings, 31.68s; 99.04%** combined coverage. Ruff lint passed; 69 files already formatted; structure check passed 44 acyclic modules with original contracts. Initial unchanged real-browser baseline passed workspace/create/edit/isolation/restart and cinematic groups, then timed out in CDP `Runtime.evaluate` with zero runtime exceptions. A fresh unchanged run completed all 14 groups successfully before application integration. No transport timeout or assertion was weakened.
+
+Existing: deterministic plans/budgets/timelines/vendors, owned saved workspaces, exact-cent expense CRUD, manual allowances, six isolated scenario types, Gemini/advice/fallback and structured interpreter, real Rescue alternatives using the same scenario engine, explicit approval/stale/re-simulation/transaction/retry protection, two-quote comparison, fictional read-only landing demo, polished responsive CSS 3D frontend.
+
+Gaps selected for this build:
+
+1. **Reviewed event-description intake.** Add strict bounded partial-brief extraction, missing-information questions, optional separately instructed Gemini extraction and conservative labeled offline parsing. Transfer only after review to the existing wizard; final explicit save uses original APIs and deterministic planning. No proposal writes an event.
+2. **Saved-state decision language and comparison.** Extend the existing interpreter for additional-guest language, explicitly denominated budget cuts and percentage venue/catering increases only when one priced target is known. Reuse the authoritative effective-cost/Decimal model. Show multiple existing previews and exact differences without creating another simulation engine.
+3. **Repeatable persisted fictional demo.** Explicitly create a separate, owner-scoped sample workspace with recorded fictional estimates/commitments, then walk through the real Rescue/preview/approve/persistence loop. Retry-safe creation; never reset existing events. Reuse the existing illustration/service and application transaction.
+4. **Verification and honest demonstration.** Add adversarial/schema/fallback/ownership/retry tests, representative repeatable evaluation cases, real browser journeys/screenshots/restarts, complete coverage/lint/syntax/format checks and judge instructions.
+
+Deferred deliberately: general contract uploads/OCR, generated photography, RSVP/seating/notifications, external vendor matching and payment reminders without stored due dates. The repository has no bounded document pipeline or payment-schedule model; existing written-quote comparisons and Guardian warnings remain useful without speculative claims. No new dependency, second ledger, scenario engine or schema version is needed.
+
+## Completed stages and data flow
+
+**B — Planning intelligence:** `POST /api/intake` accepts a strict, cleaned 2–1,200-character description. Optional Gemini extraction receives fixed separate instructions and JSON user data through the existing structured-role adapter. Its output has bounded fields, allowed event/currency/priority values, strict integers and no executable action fields. Invalid output, duplicate keys, credential echo, oversized text or provider exceptions fall back to conservative explicit-fact parsing. Missing/conflicting facts and unsupported dates become specific questions. When complete, the existing offline planner computes exact allocations, vendor groups and dated milestones. This preview has its own honest offline source even when extraction used Gemini.
+
+The creation screen shows the unsaved fields, source, questions, allowances and assumptions. Description edits invalidate the result; stale asynchronous results cannot overwrite a new draft. **Use reviewed brief** only transfers a complete reviewed proposal into the original five-step wizard. A separate explicit save still calls the existing `/api/events`. No extraction writes money or database values. Existing form personalization remains available; offline extraction intentionally supports fewer fields than the full wizard and asks for exact ISO dates/currency codes. Extraction is stateless: revise/resubmit the description; saved follow-up interpretation uses the existing workspace context.
+
+**C — Digital Twin:** the existing interpreter now accepts `What if 30 additional guests attend?`, explicitly denominated cuts such as `How can I reduce the budget by ₹50,000?` and `What if the venue costs 15% more?`. Percentage changes require exactly one saved priced venue/catering expense with no saved commitment; other cases ask for a specific target/revised obligation. Effective cost and HALF_UP cents reuse the existing ledger. Currency mismatches do not infer FX. Anchored parsing rejects appended instructions and invalid ranges. Original scenario schemas and application routes are unchanged.
+
+Scenario Studio displays up to six recent saved previews with each recorded revision, baseline/proposed projected cost, absolute and percentage differences, remaining funds/reserve and status. Review opens the original detailed category/expense/task/assumption comparison and approval controls. Display-only BigInt arithmetic preserves huge cents, rounds percentage ties HALF_UP, uses the absolute baseline for signed values and reports zero-baseline percentages as undefined. It does not calculate authoritative event totals or apply anything. Old snapshots remain labeled stale after another option applies.
+
+**D — Real saved demonstration:** the existing fictional illustration's construction moved into one reusable service, preserving the `GET /api/demo` response. New `POST /api/demo/workspace` requires a UUID and strict boolean acknowledgment. It creates a fresh owned fictional workspace with sample estimates, a venue commitment and a cumulative deposit. Event identity is derived from owner + request UUID; `BEGIN IMMEDIATE` and a read/insert check ensure concurrent retries for that established owner return the current event rather than overwriting it. A conflicting owner cannot retrieve it. The regular creation API retains its original behavior.
+
+The homepage's **Try the full saved demo** explicitly confirms creation. A locally retained UUID supports uncertain retries; it is cleared only after confirmed success. The UI opens existing Rescue with clearly fictional cancellation/quote assumptions. Assessment, option persistence, review, explicit approval, day/revision checks, re-simulation, atomic event/history/status application, retry and reload all use existing services. No automatic assessment or application occurs. Initial anonymous-cookie establishment remains a boundary: losing/changing the cookie changes owner and cannot recover that request's event.
+
+**E/F/G — Preserved strengths and bounded scope:** existing Guardian overrun/missing-cost/reserve warnings, exact lifecycle amounts, quote comparison, supplied recovery alternatives, conceptual ideas and cinematic/pause/reduced-motion controls remain. No unsupported payment dates, market prices, document extraction or visual offerings were invented. New brief and comparison surfaces use the existing typography/colors/forms, native focus controls, plain-text rendering and contained table scrolling. No new dependency or migration.
+
+## Verification ledger
+
+All commands ran from the repository using its venv. The browser runner used its own temporary database/profile/server outside the restricted browser sandbox. Live data was not used for automated mutations.
+
+| Command actually executed | Actual result |
+| --- | --- |
+| `git status --short` | Not a Git repository; baseline ZIP and byte comparisons replace Git diff evidence. |
+| `.\.venv\Scripts\python -m pytest --cov --cov-report=term-missing --cov-fail-under=90` baseline | 496 passed, 2 warnings, 31.68s; 99.04%. |
+| `node tests/browser/browser_workspace_smoke.mjs .venv/Scripts/python.exe` baseline | First run transport timeout; unchanged retry passed all 14 groups, zero runtime exceptions. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_intake.py -x -q` before implementation | Expected regression: `/api/intake` returned 404. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_intake.py -q` first implemented stage | 22 passed. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_rescue.py tests/unit/test_rescue.py tests/integration/test_workspaces.py tests/integration/test_intake.py -q` | 93 passed. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_intake.py tests/integration/test_decision_loop.py tests/integration/test_cinematic_ai.py -q` | 58 passed after correcting new test fixtures. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_intake.py tests/integration/test_decision_loop.py tests/integration/test_planning_eval.py tests/integration/test_structure.py -q` | 53 passed before four additional intake-boundary cases. |
+| `.\.venv\Scripts\python -m pytest tests/integration/test_intake.py tests/integration/test_decision_loop.py tests/integration/test_planning_eval.py -q` final targeted | 50 passed. |
+| Complete coverage command above, final | **546 passed, 2 warnings, 47.06s; 99.10% combined statement/branch coverage**. Original 90% floor and all original assertions retained. Intermediate complete run: 542 / 99.03%, before four additional meaningful date/key/origin tests. |
+| `.\.venv\Scripts\python -m ruff check app tests scripts` / `... ruff format --check app tests scripts` | Passed; 77 source files formatted. |
+| `.\.venv\Scripts\python -m ruff check .` / `... ruff format --check .` final | Passed; whole-tree check reported 87 files already formatted, including local artifact helper files. |
+| `Get-ChildItem frontend -Recurse -Filter *.js \| ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { throw "Frontend JavaScript syntax failed" } }` | All 20 frontend scripts passed. |
+| `Get-ChildItem tests/browser -Filter *.mjs \| ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { throw "Browser JavaScript syntax failed" } }` | All 8 browser/formatter scripts passed. |
+| `node tests/browser/test_money_display.mjs` | Original exact-cent currency expectations passed. |
+| `node tests/browser/test_decision_metrics.mjs` | Passed exact deltas, large cents, percentage HALF_UP ties, negative/zero baselines and malformed values. |
+| `.\.venv\Scripts\python -m scripts.check_structure` | Passed: 48 acyclic application modules; all original HTTP operations/components identical to the contract fixture. |
+| `.\.venv\Scripts\python -m scripts.evaluate_planning` | **10/10 offline constraint cases passed**. Dataset has six partial-brief and four scenario cases. This is not a live-provider accuracy score. |
+| `.\.venv\Scripts\python -m compileall -q app` | Passed. No separate type checker is configured. |
+| `.\.venv\Scripts\python -m pip check` | No broken requirements found; this is not a vulnerability scan. |
+| Browser command above, implemented and final-refined runs | **Both completed: exit 0, all 16 checkpoint groups, zero runtime exceptions.** Includes every original control/security/business/restart assertion plus new intake/demonstration groups. |
+| `Get-Command docker -ErrorAction SilentlyContinue` | CLI absent; no Docker build/runtime claim. Hosted CI/ingress and live Gemini not exercised. |
+
+New tests cover malformed/adversarial provider schemas, duplicates/NaN/unknown fields/invalid values, Unicode/HTML/untrusted content, bounded descriptions, past/far dates, provider exception/key echo, cross-origin denial, exact differences/rounding, ownership, strict acknowledgment, concurrent creation retries, scenario isolation, denied unapproved application, applied replay, stale other-option rejection and unchanged original events. Existing rollback/security/provider adapter tests remain unchanged and passed. Test-development corrections fixed fixtures that had no established ownership cookie, assigned a string directly to a Decimal field, or assumed the existing INR fixture was USD; no application protection/assertion was removed.
+
+## Browser and live-server evidence
+
+`.artifacts/autonomous/`: `event-brief-desktop.png`, `event-brief-mobile.png`, `fictional-rescue-options.png`, `saved-scenario-comparison.png`, `persisted-comparison-mobile.png`, `homepage-reduced-motion.png`. Desktop brief/comparison and narrow mobile comparison were opened for visual review. Browser tests verify blocked intake requests retain entered text, missing facts prevent transfer, HTML renders as text, edits invalidate prior suggestions, extraction leaves the event list unchanged, reviewed creation reconciles exactly, sample creation preserves other workspaces, two real recovery previews leave the sample unchanged, explicit approval persists and browser/server restart preserves the result. The comparison's known -1.99% result is asserted against the actual fictional scenario.
+
+Existing five-width 1440/1024/768/390/320 scene tests and reduced-motion/pause/keyboard checks passed. Fresh local CLS observations were zero at all five widths. New intake/comparison were also checked at desktop/390px without page overflow; the wide comparison scrolls inside its own container. No FPS, mobile thermal/battery, formal assistive-technology audit or production Core Web Vitals result is claimed.
+
+The old localhost server had not loaded new backend routes despite its reload flag. Its exact project launcher/process tree was verified before refreshing it. SQLite's backup API saved `data/backups/pre-autonomous-20261026T212554Z.sqlite3` (integrity check `ok`) before that refresh. The project server was relaunched hidden with the same default SQLite path and `--no-proxy-headers`. `/healthz` returned **200**, OpenAPI now includes both new routes, and startup reported **offline** mode. Read-only comparison confirmed **every saved event/scenario document identical to the pre-restart backup**, schema still 2. No automated sample was inserted into the live database. Startup logs are under `.artifacts/runtime/`; no unrelated process was stopped.
+
+Final live HTTP smoke: `Invoke-RestMethod http://127.0.0.1:8000/api/intake -Method Post -ContentType 'application/json' -Body '{"description":"A garden wedding"}' -TimeoutSec 10` returned source `offline`, four missing-fact questions and a null preview. `Invoke-WebRequest http://127.0.0.1:8000/ -UseBasicParsing` returned 200 with CSP present. This read-only intake check did not create a workspace or contact Gemini.
+
+## Exact file inventory and remaining limitations
+
+Created: `app/ai/intake.py`, `app/api/intake.py`, `app/schemas/intake.py`, `app/services/demo.py`, `frontend/modules/intelligence.js`, `frontend/modules/decision-comparison.js`, `frontend/modules/decision-metrics.js`, `frontend/styles/intelligence.css`, `scripts/evaluate_planning.py`, `tests/integration/test_intake.py`, `tests/integration/test_decision_loop.py`, `tests/integration/test_planning_eval.py`, `tests/fixtures/planning_eval.json`, `tests/browser/decision_loop_smoke.mjs`, `tests/browser/test_decision_metrics.mjs`, `docs/AUTONOMOUS_BUILD.md`, `docs/JUDGE_DEMO.md`.
+
+Modified: `app/ai/intents.py`, `app/api/demo.py`, `app/main.py`, `app/repositories/workspaces.py`, `frontend/app.js`, `frontend/style.css`, `tests/browser/planora_product_smoke.mjs`, `README.md`, `docs/UPGRADE_AUDIT.md`, `docs/UPGRADE_PLAN.md`.
+
+Removed/moved: none. No baseline Python test, original contract fixture, engine, ledger, scenario apply service, request/proxy/limiter/AI-boundary module, database schema/migration, dependency, environment example or Docker file was replaced. Existing event creation and APIs remain compatible; only two routes are added. Source baseline comparison confirms the inventory. Runtime backups/screenshots are ignored, not source artifacts for Git.
+
+Optional Gemini extraction remains unverified against real credentials; existing SDK adapter and failure behavior are tested with fakes. Schema/role/validation boundaries do not solve prompt injection or semantic factuality. Even schema-valid extracted facts can be mistaken, so users must review them. Offline parsing deliberately supports explicit facts rather than arbitrary language/relative dates. The brief is not a persisted conversational object. Cancellation descriptions are still transient analysis; scenario parameters/status/history persist. New comparison is display-only, with six recent rows, not an optimization solver.
+
+No general document/OCR ingestion, payment schedule, autonomous booking/contact, live availability/market verification, RSVP/seating subsystem or generated-image provider was added. Existing quote comparison and saved design ideas remain. No account/cookie recovery or multi-instance readiness is claimed: SQLite is durable-single-instance, quotas/cache are per process and restart-local. Initial cookie establishment must complete before replay identity is reliable. The two Starlette/HTTPX and google-genai deprecation warnings remain unsuppressed. Follow-up priorities: measured live-provider evaluation on consented data, bounded document ingestion only with source evidence, account recovery/durable hosting strategy, and release dependency/CI reproducibility.
+
+Use [JUDGE_DEMO.md](JUDGE_DEMO.md) for exact launch/setup, configuration and the repeatable **imagine → plan → simulate → recover → approve → verify** presentation.

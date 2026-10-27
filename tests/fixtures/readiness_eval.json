@@ -1,0 +1,12 @@
+[
+  {"name":"priced fictional workspace", "kind":"priced", "check":"budget_prices", "state":"pass"},
+  {"name":"unpriced event", "kind":"missing", "check":"budget_prices", "state":"unknown"},
+  {"name":"retained contractual exposure", "kind":"exposure", "check":"budget_constraints", "state":"attention"},
+  {"name":"cancelled supplier", "kind":"cancelled", "check":"vendor_booking", "state":"attention"},
+  {"name":"no recorded prerequisite graph", "kind":"priced", "check":"timeline_dependencies", "state":"unknown"},
+  {"name":"dependency cycle", "kind":"cycle", "check":"timeline_dependencies", "state":"attention"},
+  {"name":"yesterday incomplete", "kind":"overdue", "check":"timeline_overdue", "state":"attention"},
+  {"name":"today incomplete is not overdue", "kind":"today", "check":"timeline_overdue", "state":"pass"},
+  {"name":"source instructions remain data", "kind":"injection", "check":"planning_decisions", "state":"unknown"},
+  {"name":"recovery coverage cannot be certified", "kind":"priced", "check":"resilience_coverage", "state":"unknown"}
+]

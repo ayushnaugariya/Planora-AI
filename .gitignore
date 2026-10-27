@@ -1,0 +1,72 @@
+# Python runtime and verification outputs
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+*.egg-info/
+
+# Local environments and generated dependency/build directories
+.venv/
+venv/
+env/
+node_modules/
+build/
+dist/
+
+# Private configuration; only the reviewed template belongs in Git
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+.aws/
+.codex/
+.agents/
+
+# Runtime workspaces, database journals and local backups
+/data/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+*.db-wal
+*.db-shm
+*.bak
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Browser profiles, screenshots, recordings and local evidence
+/.artifacts/
+playwright-report/
+test-results/
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Machine/editor settings
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
