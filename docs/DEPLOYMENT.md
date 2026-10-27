@@ -32,7 +32,7 @@ Defaults: 30 requests / 60 seconds / 10,000 clients. Bounds: limit <=10,000, win
 
 When Cloud Run sets `K_SERVICE`, saved-event SQLite APIs return 503 rather than promising durable saves on an ephemeral/multi-instance filesystem. Stateless planning/health can remain available, but the complete saved-workspace product cannot be claimed deployed there. Do not unset the guard to make unsupported saves appear functional.
 
-No Vercel configuration is added. This persistent Python/SQLite application has no verified Vercel deployment. A future serverless/multi-instance architecture would need a separately approved durable shared database and migration, account/security design, distributed quotas and target-specific testing. A local SQLite file must not be treated as durable serverless storage.
+Vercel bootstrap metadata now explicitly selects `app.main:app`, declares the same four runtime dependencies in `pyproject.toml` as in `requirements.txt`, and keeps static files in the function with CDN promotion disabled so existing cache/security middleware still runs. This addresses dependency/entrypoint discovery; it does not add durable storage. The complete persistent Python/SQLite application still has no verified Vercel deployment. See [bootstrap diagnosis and verification](VERCEL_DIAGNOSIS.md). A future serverless/multi-instance architecture would need a separately approved durable shared database and migration, account/security design, distributed quotas and target-specific testing. A local SQLite file must not be treated as durable serverless storage.
 
 ## Release verification
 

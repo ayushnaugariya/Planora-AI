@@ -4,6 +4,20 @@ version = "1.0.0"
 description = "GenAI-powered celebration and event planner"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "google-genai>=1.0",
+]
+
+[tool.vercel]
+entrypoint = "app.main:app"
+
+[tool.vercel.fastapi.static]
+# Preserve the existing cache/security middleware and runtime-served frontend.
+cdn = false
+exclude = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
