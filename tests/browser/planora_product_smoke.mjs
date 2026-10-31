@@ -1,3 +1,9 @@
+import {checkGuests} from './guest_manager_smoke.mjs';
+import {checkNegotiation} from './negotiation_smoke.mjs';
+import {checkCommandCenter} from './command_center_smoke.mjs';
+import {checkWebsites} from './website_smoke.mjs';
+import {checkLegacyCompletion,checkPublicTimeouts} from './final_audit_smoke.mjs';
+import {checkAuditNavigation,checkAuditDocs} from './audit_regression_smoke.mjs';
 // Additional real-browser product checks, invoked by browser_workspace_smoke.mjs.
 import assert from 'node:assert/strict';
 import {mkdirSync,writeFileSync} from 'node:fs';
@@ -9,6 +15,7 @@ import {checkDecisionLoop} from './decision_loop_smoke.mjs';
 import {checkScrollStory} from './scroll_story_smoke.mjs';
 import {checkSignature} from './signature_smoke.mjs';
 import {checkReadiness} from './readiness_smoke.mjs';
+import {checkEventPortal} from './event_portal_smoke.mjs';
 
 export async function runProductSmoke({evaluate,send,waitFor,savedEvent,restart}){
   const artifacts=path.resolve('.artifacts/planora');mkdirSync(artifacts,{recursive:true});
@@ -84,7 +91,9 @@ export async function runProductSmoke({evaluate,send,waitFor,savedEvent,restart}
   await values({'checklist-search':''});await click('#checklist-items input');
   await waitFor("document.getElementById('workspace-status').textContent==='Checklist saved.'&&!document.getElementById('submit-btn').disabled");
   assert((await savedEvent(id)).tasks.some(item=>item.completed));
-  await click('#tab-guests');await waitFor(visible('panel-guests'));assert(await evaluate("document.getElementById('guest-summary').textContent.includes('Not tracked')"));
+  await click('#tab-guests');await waitFor(visible('panel-guests'));await waitFor("document.querySelector('[data-guest-stat=total_invited]')?.textContent==='0'");
+  assert(await evaluate("document.getElementById('guest-summary').textContent.includes('Managed in the private guest list')"));
+  assert(await evaluate("document.getElementById('guest-name').required&&Boolean(document.querySelector('#guest-rsvp option[value=confirmed]'))"));
 
   // Explicit test-only known zero-cost assumptions, never production sample data.
   const seed=await evaluate(`(async()=>{let event=await fetch('/api/events/${id}').then(r=>r.json());for(const line of event.plan.budget_lines.filter(item=>item.key!=='contingency')){const result=await fetch('/api/events/${id}/budget/expenses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:event.revision,request_id:crypto.randomUUID(),expense:{category_key:line.key,description:'Browser test confirmed '+line.label,currency:event.details.currency,unit_amount:'0'}})});if(!result.ok)throw Error(await result.text());event=await result.json();}return event;})()`);
@@ -156,4 +165,13 @@ export async function runProductSmoke({evaluate,send,waitFor,savedEvent,restart}
   await checkDecisionLoop({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
   await checkSignature({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
   await checkReadiness({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
+  await checkGuests({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
+  await checkNegotiation({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
+  await checkCommandCenter({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
+  await checkWebsites({evaluate,send,waitFor,click,viewport,values,restart,savedEvent});
+  await checkLegacyCompletion({evaluate,send,waitFor,click,viewport,values,savedEvent});
+  await checkPublicTimeouts({evaluate,send,waitFor,click,viewport,values,savedEvent});
+  await checkEventPortal({evaluate,send,waitFor,click,viewport});
+  await checkAuditNavigation({evaluate,send,waitFor,click,viewport});
+  await checkAuditDocs({evaluate,send,waitFor,click,viewport});
 }

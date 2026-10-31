@@ -336,8 +336,9 @@ def readiness(base, previews=(), *, today=None):
             "points. Unknown checks never count as passes.",
             "Dates use the server calendar day, consistent with scenarios; event "
             "timezone/day-of timing is not modeled. Today is not overdue.",
-            "No guest RSVP roster, task owners, weather, permits or comprehensive "
-            "incident coverage is modeled. This is not a fully-ready certification.",
+            "Guest RSVPs are tracked separately and do not replace planning headcount. "
+            "Task owners, weather, permits and comprehensive incident coverage remain "
+            "unmodeled. This is not a fully-ready certification.",
             "Read-only snapshot. A later saved change or server day requires refresh; "
             "previews require their original review and explicit approval.",
         ],

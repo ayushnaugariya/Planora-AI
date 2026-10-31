@@ -12,18 +12,22 @@ from fastapi.staticfiles import StaticFiles
 
 from app.ai import gemini as ai
 from app.api.budget import router as budget_router
+from app.api.command_center import router as command_center_router
 from app.api.coordination import router as coordination_router
 from app.api.demo import router as demo_router
 from app.api.errors import register_handlers
+from app.api.guests import router as guest_router
 from app.api.intake import router as intake_router
 from app.api.intelligence import router as intelligence_router
+from app.api.negotiations import router as negotiation_router
 from app.api.planning import router as planning_router
 from app.api.readiness import router as readiness_router
 from app.api.rescue import router as rescue_router
 from app.api.scenarios import router as scenario_router
+from app.api.websites import router as website_router
 from app.api.workspaces import router as workspace_router
 from app.core import security
-from app.core.config import FRONTEND_DIR, MAX_BODY_BYTES, PROXY_POLICY, database_path
+from app.core.config import FRONTEND_DIR, MAX_BODY_BYTES, PROJECT_ROOT, PROXY_POLICY, database_path
 from app.core.errors import StorageUnavailable, UnsupportedSchema
 from app.core.proxy import TrustedProxyMiddleware
 from app.core.request_limits import RequestBodyLimitMiddleware
@@ -57,7 +61,7 @@ app = FastAPI(
     description="GenAI celebration and event planner",
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/api/docs",
+    docs_url=None,  # Self-hosted Swagger UI below works with the existing CSP.
     redoc_url=None,
     openapi_url="/api/openapi.json",
 )
@@ -66,9 +70,13 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(RequestBodyLimitMiddleware, max_body_bytes=MAX_BODY_BYTES)
 app.include_router(workspace_router)
+app.include_router(website_router)
 app.include_router(budget_router)
 app.include_router(scenario_router)
 app.include_router(coordination_router)
+app.include_router(command_center_router)
+app.include_router(guest_router)
+app.include_router(negotiation_router)
 app.include_router(rescue_router)
 app.include_router(demo_router)
 app.include_router(intake_router)
@@ -85,4 +93,15 @@ def index() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "index.html", headers={"Cache-Control": "no-cache"})
 
 
+@app.api_route("/api/docs", methods=["GET", "HEAD"], include_in_schema=False)
+def documentation() -> FileResponse:
+    return FileResponse(FRONTEND_DIR / "api-docs.html")
+
+
+# Match the narrow vendor mount before the general application static directory.
+app.mount(
+    "/static/assets/vendor/swagger-ui-5.34.0",
+    StaticFiles(directory=PROJECT_ROOT / "vendor" / "swagger-ui-5.34.0"),
+    name="swagger-assets",
+)
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")

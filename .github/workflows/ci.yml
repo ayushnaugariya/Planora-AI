@@ -48,6 +48,8 @@ jobs:
           }
       - run: node tests/browser/test_money_display.mjs
       - run: node tests/browser/test_decision_metrics.mjs
+      - run: node tests/browser/test_event_portal_geometry.mjs
+      - run: node --check vendor/swagger-ui-5.34.0/swagger-ui-bundle.js
       - run: python -m scripts.evaluate_planning
       - run: python -m scripts.evaluate_intelligence
       - run: python -m scripts.evaluate_readiness

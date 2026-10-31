@@ -7,6 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.errors import RevisionConflict, StorageUnavailable, UnsupportedSchema, WorkspaceNotFound
+from app.core.security import secure_response
 
 log = logging.getLogger("eventra")
 
@@ -32,9 +33,13 @@ async def unavailable_workspace(_: Request, exc: Exception):
     return JSONResponse({"error": "Saved-event storage is unavailable. Please try again."}, status_code=503)
 
 
-async def unhandled(_: Request, exc: Exception):
+async def unhandled(request: Request, exc: Exception):
     log.exception("Unhandled error")
-    return JSONResponse({"error": "Something went wrong. Please try again."}, status_code=500)
+    # ServerErrorMiddleware emits this response outside the normal HTTP guard.
+    return secure_response(
+        JSONResponse({"error": "Something went wrong. Please try again."}, status_code=500),
+        request.url.path,
+    )
 
 
 def register_handlers(app: FastAPI) -> None:

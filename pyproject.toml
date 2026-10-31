@@ -9,6 +9,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "pydantic>=2.7",
     "google-genai>=1.0",
+    "tzdata>=2025.2",  # IANA timezone data for Windows and minimal containers.
 ]
 
 [tool.vercel]

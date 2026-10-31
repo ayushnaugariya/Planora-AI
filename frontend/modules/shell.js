@@ -2,6 +2,8 @@ import {state} from './state.js';
 import {$,h,clear,fmtDate,financialMoney,store} from './helpers.js';
 
 const views = {
+  website:['Your occasion, beautifully shared','Create an invitation from your saved event. Preview and approve the public details before publishing.'],
+  command:['Your event, in motion','Coordinate the day with saved tasks, arrivals and incidents. Every operational change needs your approval.'],
   overview:['Your occasion, at a glance','A clear view of the details you have saved, and what needs your attention.'],
   budget:['A little room for everything','Keep allowances, estimates, commitments and payments in the same picture.'],
   vendors:['Good people. Clear details.','Keep contacts, booking status and the right questions together. Supplier availability is not checked live.'],
@@ -38,7 +40,7 @@ export function mountShell({wizard,selectTab,openWorkspace,workspaceAction,hasUn
   $('mobile-menu').addEventListener('click',()=>menu(true));
   $('sidebar-scrim').addEventListener('click',()=>menu(false,true));
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape') menu(false,true);
+    if(e.key==='Escape'&&document.body.classList.contains('sidebar-open')) menu(false,true);
     if(e.key==='Tab'&&mobile.matches&&document.body.classList.contains('sidebar-open')){
       const controls=[...sidebar.querySelectorAll('a,button,select')].filter(el=>!el.disabled&&el.getClientRects().length&&el.tabIndex>=0);
       const first=controls[0],last=controls.at(-1);
@@ -58,6 +60,7 @@ export function mountShell({wizard,selectTab,openWorkspace,workspaceAction,hasUn
   links.before(toggle);
   toggle.addEventListener('click',()=>{const open=links.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));});
   links.addEventListener('click',()=>{links.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&links.classList.contains('is-open')){links.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');toggle.focus();}});
 
   // Move existing authoritative render targets, retaining their IDs and handlers.
   const source=h('section',{class:'surface overview-source'},h('h3',{text:'The planning picture'}));

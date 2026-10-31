@@ -1,0 +1,63 @@
+/* Deterministic public renderer, scoped so the planning studio/landing stay intact. */
+.event-site{--invite-accent:#7863b4;--invite-on-accent:#fff;--invite-bg:#fbf8f2;--invite-paper:#fffefa;--invite-ink:#243149;--invite-muted:#636a70;--invite-line:#ded8cf;background:var(--invite-bg);color:var(--invite-ink);font:16px/1.7 "Segoe UI",Arial,sans-serif;border-radius:18px;overflow:hidden;isolation:isolate;text-align:center}
+.event-site *{box-sizing:border-box}
+.event-site h1,.event-site h2,.event-site h3{color:var(--invite-ink);font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:400;line-height:1.08;letter-spacing:-.04em;overflow-wrap:anywhere}
+.event-site h1{font-size:clamp(2.6rem,6vw,6.2rem);max-width:950px;margin:1.3rem auto}
+.event-site h2{font-size:clamp(1.9rem,3.4vw,3.2rem);margin:.8rem auto 1.4rem}
+.event-site h3{font-size:1.4rem;margin:.4rem 0}
+.event-site p{overflow-wrap:anywhere;white-space:pre-line}
+.event-site .invite-hero{position:relative;padding:clamp(2rem,7vw,6rem) clamp(1rem,4vw,3rem) 2rem;border-bottom:1px solid var(--invite-line)}
+.event-site .invite-monogram{font-size:2.2rem;color:var(--invite-accent);margin-bottom:2rem}
+.event-site .invite-eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:.73rem;font-weight:650;margin:0 0 .9rem}
+.event-site .invite-subtitle{max-width:620px;margin:1rem auto;color:var(--invite-muted);font-size:1.1rem}
+.event-site .invite-date{font-size:.95rem;margin:1.5rem auto;max-width:720px}
+.event-site .invite-countdown{font-size:.8rem;letter-spacing:.04em;margin:2rem 0 1rem;color:var(--invite-muted)}
+.event-site .invite-cover{width:min(820px,100%);height:clamp(180px,36vw,400px);object-fit:cover;margin:2.5rem auto 0;border-radius:45% 45% 6px 6px;border:1px solid var(--invite-line)}
+.event-site .invite-content{max-width:940px;margin:0 auto;padding:0 clamp(1rem,4vw,3rem)}
+.event-site .invite-section{padding:clamp(2.5rem,6vw,5rem) 0;border-bottom:1px solid var(--invite-line)}
+.event-site .invite-section>p{max-width:660px;margin-left:auto;margin-right:auto}
+.event-site .invite-message{font-family:Georgia,serif;font-size:clamp(1.15rem,2.2vw,1.5rem)}
+.event-site .invite-schedule{list-style:none;padding:0;max-width:600px;margin:2rem auto}
+.event-site .invite-schedule li{padding:1.2rem;border-bottom:1px solid var(--invite-line)}
+.event-site .invite-schedule time{font-size:.8rem;color:var(--invite-muted)}
+.event-site .invite-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.event-site .invite-gallery img{display:block;width:100%;height:220px;object-fit:cover;border:1px solid var(--invite-line);border-radius:12px;background:var(--invite-paper)}
+.event-site form{max-width:650px;margin:1.5rem auto 0;text-align:left}
+.event-site fieldset{border:0;padding:0;margin:0;min-width:0}
+.event-site .invite-fields{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.event-site .invite-field{display:grid;gap:.4rem;font-size:.85rem;margin-bottom:1rem;font-weight:500}
+.event-site input,.event-site select,.event-site textarea{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;border:1px solid var(--invite-line);border-radius:7px;padding:.85rem;background:var(--invite-paper);color:var(--invite-ink);font:inherit;line-height:1.5}
+.event-site .invite-button{background:var(--invite-accent);color:var(--invite-on-accent);border:0;border-radius:7px;padding:1rem 1.8rem;font:600 .9rem "Segoe UI",Arial,sans-serif;cursor:pointer;min-height:48px}
+.event-site button:disabled{opacity:.6;cursor:not-allowed}
+.event-site .invite-note{font-size:.8rem;color:var(--invite-muted)}
+.event-site .invite-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;padding:2rem;font-size:.75rem;color:var(--invite-muted)}
+.event-site a{color:inherit;text-decoration:underline;text-underline-offset:4px}
+.event-site :focus-visible{outline:3px solid var(--invite-ink);outline-offset:4px}
+.event-site[data-theme=modern_minimal]{--invite-bg:#f5f6f4;--invite-paper:#fff;--invite-ink:#17251f;--invite-muted:#526058;--invite-line:#d8ded9;text-align:left;border-radius:0}
+.event-site[data-theme=modern_minimal] h1,.event-site[data-theme=modern_minimal] h2,.event-site[data-theme=modern_minimal] h3{font-family:"Segoe UI",Arial,sans-serif;font-weight:600;letter-spacing:-.06em}
+.event-site[data-theme=modern_minimal] .invite-hero,.event-site[data-theme=modern_minimal] .invite-content{max-width:1100px;margin:auto}
+.event-site[data-theme=modern_minimal] .invite-hero>*{margin-left:0}
+.event-site[data-theme=modern_minimal] .invite-section>p{margin-left:0}
+.event-site[data-theme=modern_minimal] .invite-cover{border-radius:0;width:100%}
+.event-site[data-theme=celebration]{--invite-bg:#fff3df;--invite-paper:#fffaf0;--invite-ink:#3c2053;--invite-muted:#6e476c;--invite-line:#e7c9d1}
+.event-site[data-theme=celebration] .invite-hero{background:radial-gradient(circle at 8% 20%,#f6bec6 0 8%,transparent 8.2%),radial-gradient(circle at 94% 70%,#d4b9f2 0 11%,transparent 11.2%)}
+.event-site[data-theme=celebration] h1{font-weight:650;font-family:Georgia,serif}
+.event-site[data-theme=celebration] .invite-monogram{font-size:3.5rem}
+.event-site[data-theme=celebration] .invite-cover{border-radius:120px 12px 120px 12px}
+.event-site[data-theme=editorial_luxe]{--invite-bg:#211c25;--invite-paper:#302936;--invite-ink:#f6ecdb;--invite-muted:#cab9cb;--invite-line:#574757}
+.event-site[data-theme=editorial_luxe] h1{font-style:italic;font-size:clamp(2.8rem,7vw,7rem)}
+.event-site[data-theme=editorial_luxe] .invite-hero{border-bottom:1px solid #baa382}
+.event-site[data-theme=editorial_luxe] .invite-cover{border-radius:0;filter:sepia(.25)}
+.invite-error{padding:1rem;border:1px solid #bf7777;background:#fff0ee;color:#8c2828;border-radius:8px;max-width:700px;margin:1rem auto;overflow-wrap:anywhere;font:14px/1.6 "Segoe UI",Arial,sans-serif}
+.invite-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+body.invitation-page{margin:0;background:#fbf8f2;font-family:"Segoe UI",Arial,sans-serif}
+.invitation-page .event-site{border-radius:0;min-height:70vh}
+.invite-utilities{display:flex;justify-content:space-between;align-items:center;padding:1rem 5%;gap:1rem;background:#fffefa;font-size:.85rem;color:#243149}
+.invite-utilities a{color:inherit;text-decoration:none;font-weight:650}
+.invite-utilities button,.invite-retry{padding:.7rem 1rem;border:1px solid #ded8cf;background:#fffefa;border-radius:8px;cursor:pointer;color:#243149}
+.invite-loading{padding:1rem;text-align:center;font:14px/1.6 "Segoe UI",Arial,sans-serif}
+.invite-skip{position:absolute;left:1rem;top:-100px;background:#243149;color:white;padding:.8rem;z-index:5}
+.invite-skip:focus{top:1rem}
+.invitation-page [hidden],.event-site [hidden]{display:none!important}
+@media(max-width:600px){.event-site .invite-fields{grid-template-columns:1fr}.event-site .invite-gallery{grid-template-columns:1fr}.event-site .invite-gallery img{height:230px}.event-site .invite-hero{padding-top:2.5rem}.event-site h1{font-size:clamp(2.3rem,11vw,3.5rem)}.event-site .invite-cover{height:200px}.event-site .invite-footer{padding:1.5rem}}
+@media print{.invitation-page .invite-utilities,.invitation-page .invite-retry,.invitation-page #invitation-error,.invitation-page .invite-skip,.invitation-page .invite-loading,.invitation-page form,.invitation-page .invite-countdown{display:none!important}.invitation-page .event-site{--invite-bg:#fff;--invite-ink:#111;--invite-muted:#444;--invite-line:#ccc;background:white;color:#111}.invitation-page .invite-section{padding:1.5rem 0;break-inside:avoid}.invitation-page .invite-hero{padding:1.5rem}.invitation-page .invite-hero h1{font-size:38pt}.invitation-page .invite-cover{max-height:180px}.invitation-page .invite-footer a{display:none}}

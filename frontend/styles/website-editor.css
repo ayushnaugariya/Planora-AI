@@ -1,0 +1,22 @@
+#panel-website{display:grid;gap:1.5rem;min-width:0}
+#panel-website[hidden]{display:none}
+#panel-website .surface{min-width:0}
+#website-editor{display:grid;gap:1.15rem}
+#website-editor .website-theme-gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+#website-editor .website-theme-card{padding:1.4rem .85rem;min-height:135px;text-align:left;border:1px solid var(--line);border-radius:12px;background:#fbf8f2;color:#243149;font-family:Georgia,serif;font-size:1.2rem;cursor:pointer}
+#website-editor .website-theme-card span{display:block;font-family:var(--sans);font-size:.74rem;line-height:1.6;margin-top:1rem}
+#website-editor .website-theme-card[data-website-theme=modern_minimal]{background:#edf2ee;font-family:var(--sans)}
+#website-editor .website-theme-card[data-website-theme=celebration]{background:linear-gradient(125deg,#fff3df,#f1c5e0);color:#3c2053}
+#website-editor .website-theme-card[data-website-theme=editorial_luxe]{background:#211c25;color:#f6ecdb;font-style:italic}
+#website-editor .website-theme-card[aria-pressed=true]{outline:3px solid var(--violet);outline-offset:3px}
+#panel-website .website-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+#panel-website .website-checks label,#panel-website .website-publication-check{display:flex;gap:.7rem;align-items:flex-start;font-size:.88rem}
+#panel-website input[type=checkbox]{width:auto;flex:none;margin-top:.3rem}
+#panel-website .website-schedule-row{display:grid;grid-template-columns:1.4fr 1fr 1.4fr auto;gap:.75rem;align-items:end;margin:1rem 0;padding:1rem;border:1px solid var(--line);border-radius:10px}
+#panel-website input,#panel-website textarea,#panel-website select{min-width:0;max-width:100%}
+#panel-website .people-actions{flex-wrap:wrap}
+#website-design-preview:empty{display:none}
+#website-design-preview{border:1px solid var(--line)}
+#website-public-disclosure{overflow-wrap:anywhere;font-size:.9rem}
+@media(max-width:1100px){#website-editor .website-theme-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}#panel-website .website-schedule-row{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){#panel-website .website-checks,#panel-website .website-schedule-row,#panel-website .people-grid{grid-template-columns:1fr}#website-editor .website-theme-card{min-height:115px}}

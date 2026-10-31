@@ -1,11 +1,11 @@
-async function api(path, body, method = "POST") {
+async function api(path, body, method = "POST", options = {}) {
     let res;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 45000);
     try {
-      res = await fetch(path, { method, signal:controller.signal, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+      res = await fetch(path, { method, signal:controller.signal, cache:options.cache, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
     } catch {
-      if (controller.signal.aborted) throw new Error("The server took too long. Reopen the event to confirm whether changes were saved before retrying.");
+      if (controller.signal.aborted) throw new Error(options.timeoutMessage || "The server took too long. Reopen the event to confirm whether changes were saved before retrying.");
       throw new Error("Can't reach the server. Check your connection and try again.");
     } finally { clearTimeout(timeout); }
     if (res.ok) return res;
@@ -22,6 +22,6 @@ async function api(path, body, method = "POST") {
     } else {
       try { const data = await res.json(); msg = data.error || data.detail || msg; } catch { /* keep default */ }
     }
-    throw new Error(msg);
+    const error = new Error(msg); error.status = res.status; throw error;
   }
 export {api};

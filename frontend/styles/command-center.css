@@ -1,0 +1,31 @@
+/* Workspace-only event operations; public landing and motion styles are untouched. */
+#panel-command{display:grid;gap:1.25rem;min-width:0}
+#panel-command[hidden]{display:none}
+#panel-command .surface{padding:clamp(1rem,2.5vw,2rem);min-width:0}
+#panel-command .day-hero{border-top:3px solid var(--violet)}
+#panel-command .day-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin:1.25rem 0}
+#panel-command .day-stats>div{padding:.9rem;border:1px solid var(--line);border-radius:12px;background:var(--ivory)}
+#panel-command .day-stats span{display:block;font-size:.8rem;color:var(--muted)}
+#panel-command .day-stats strong{display:block;font-size:1.65rem;margin-top:.3rem}
+#panel-command .day-now-next{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+#panel-command .day-now-next>div{border-left:3px solid var(--violet);padding:.75rem 1rem;background:var(--ivory)}
+#panel-command .day-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:.85rem;margin:1rem 0;align-items:start}
+#panel-command .day-row{padding:1rem;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere;min-width:0}
+#panel-command .day-row h4{margin:.65rem 0;font-size:1.1rem}
+#panel-command .day-row p{font-size:.88rem}
+#panel-command .day-times{display:grid;gap:.25rem;font-size:.8rem}
+#panel-command .day-times dt{color:var(--muted)}
+#panel-command .day-times dd{margin:0 0 .4rem}
+#panel-command .day-delayed,#panel-command .day-blocked,#panel-command .day-severity-critical{border-left:3px solid var(--violet)}
+#panel-command .day-completed{opacity:.8}
+#panel-command .day-editor{padding-top:1.2rem;margin-top:1.5rem;border-top:1px solid var(--line);display:grid;gap:1rem}
+#panel-command input,#panel-command select,#panel-command textarea{max-width:100%;min-width:0}
+#panel-command .day-approval{display:flex;gap:.7rem;align-items:flex-start;font-size:.85rem}
+#panel-command input[type=checkbox]{width:auto;flex:none;margin-top:.2rem}
+#panel-command .day-activity{max-height:340px;overflow:auto;padding-left:1.3rem}
+#panel-command .day-activity li{padding:.7rem 0;border-bottom:1px solid var(--line);font-size:.85rem}
+#panel-command .day-activity small{display:block;color:var(--muted);overflow-wrap:anywhere}
+#panel-command .people-actions{flex-wrap:wrap}
+#panel-command button{white-space:normal}
+#panel-command #day-copilot-result{margin-top:1rem;display:grid;gap:.8rem}
+@media(max-width:600px){#panel-command .day-now-next{grid-template-columns:1fr}#panel-command .people-grid{grid-template-columns:1fr}#panel-command .day-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}

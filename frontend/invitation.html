@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,noarchive">
+  <title>An invitation · Planora AI</title>
+  <link rel="stylesheet" href="/static/styles/event-site.css">
+  <script type="module" src="/static/invitation.js"></script>
+</head>
+<body class="invitation-page">
+  <a class="invite-skip" href="#public-event">Skip to invitation</a>
+  <div class="invite-utilities"><a href="/">Planora AI</a><button id="invitation-print" type="button" hidden>Print invitation</button></div>
+  <p id="invitation-loading" class="invite-loading" role="status">Opening your invitation…</p>
+  <p id="invitation-error" class="invite-error" role="alert" hidden></p>
+  <button id="invitation-retry" class="invite-retry" type="button" hidden>Try again</button>
+  <div id="public-event" tabindex="-1"></div>
+  <noscript><p class="invite-loading">Enable JavaScript to view this invitation and respond. No response is sent without your action.</p></noscript>
+</body>
+</html>

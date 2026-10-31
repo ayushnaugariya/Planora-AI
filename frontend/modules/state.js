@@ -9,6 +9,10 @@ export const state = {
   "allocationDirty": false,
   "scenarioDirty": false,
   "quoteDirty": false,
+  "guestDirty": false,
+  "commandDirty": false,
+  "websiteDirty": false,
+  "negotiationDirty": false,
   "selectedScenario": null,
   "scenarioFetchToken": 0
 };

@@ -4,15 +4,39 @@ A GenAI-powered Celebration & Event Planner for weddings, birthdays and communit
 
 **Numbers and approvals belong to the server.** Gemini provides optional narrative or validated suggestions; it cannot change authoritative money, bypass ownership, or apply a scenario. A deterministic offline planner remains available without credentials.
 
+The homepage now includes a separate **Planora Event Portal** after the workflow introduction: real WebGL2 metal/glass geometry, a scroll-driven camera passage and an assembling architectural universe. The original floral hero and invitation remain untouched. The portal loads near its section, pauses independently and uses static artwork for reduced motion, data saving, short screens or unavailable WebGL. No frontend dependency or build step was added. Open `http://127.0.0.1:8000/#event-portal` locally; [implementation and validation](docs/EVENT_PORTAL.md).
+
 ## Problem and solution
 
 The supplied Challenge 5 statement is: ?Create a GenAI-powered planning assistant that helps users organize weddings, birthdays, and community events with budgets, timelines, vendor checklists, and personalized ideas.? Planora connects these capabilities in one saved workspace. The statement was supplied by the project owner; independent competition publication, public submission eligibility and any participant-count/ranking claims have not been verified.
+
+## Event Website & Invitation Generator
+
+Open a saved event and choose **Event Website**. Customize Ethereal, Modern Minimal, Celebration or Editorial Luxe, save a private draft, preview the actual design, then explicitly approve publication. Stable unlisted `/e/<random-slug>` links expose only the approved public snapshot. Updates require another approval; unpublish revokes access. Optional public RSVPs enter the existing Guest Manager as unverified responses, without changing budgets or overwriting prior guests.
+
+Gemini can select bounded invitation-copy variants; server-composed wording and the full publishing workflow work without credentials or after provider failures. Host/venue/schedule/dress/gallery/RSVP visibility starts off. Covers/gallery use bundled illustrations; arbitrary URLs and personal photo uploads are not supported. Public pages require JavaScript. No new dependency or environment variable is required. [Full behavior, nine endpoints, storage, changed files, verification and deployment limits](docs/EVENT_WEBSITES.md).
+
+## Event Day Command Center
+
+Open a saved event and select **Event Day** to manage timeline status, responsible people, custom operations, expected times, vendor arrivals and incidents. Activity persists across restarts; original milestone dates and budgets remain intact. Readiness is calculated from recorded checks, with its formula shown. All operational writes need explicit approval. The grounded copilot is read-only, and recovery options still use Event Rescue's existing preview/approval workflow.
+
+Install the updated `requirements.txt` and restart FastAPI for the new routes. `tzdata` supplies the IANA timezone data missing on Windows; no extra secret is required. Set the event timezone explicitly or the dashboard discloses its server-local calendar-day assumption. This is 30-second polling, not external live monitoring. [Complete behavior, four endpoints, additive storage, files, validation and limitations](docs/EVENT_DAY_COMMAND_CENTER.md).
+
+## Guest roster and vendor negotiation
+
+Saved events now have a private Guest List & RSVP Manager (500 primary guest records per event), including search/groups, manual party responses, plus-ones, requirements and immediate counts. Confirmed attendance can be reviewed through the existing guest-count scenario; it never silently changes the planning budget. Vendors now have a quote-grounded Negotiation Assistant with seven scenarios, optional Gemini-selected tactics/tone, editable/copyable messages and one explicitly saved, versioned draft per vendor. Quote Analyzer results can be reused directly. **No invitation or vendor communication is sent.**
+
+No additional dependency or login is required. Two optional child tables are created transactionally on first save; the database path and workspace schema 2 remain unchanged. [Behavior, counting rules, endpoints, migrations, exact verification and limitations](docs/GUESTS_NEGOTIATION.md).
 
 ## Implemented features
 
 | Capability | Actual behavior |
 | --- | --- |
+| Event Website & Invitation Generator | Four deterministic themes, private drafts, actual preview, approved public snapshot, stable shareable link, update/unpublish/republish and create-only public RSVP in Guest Manager. Local artwork and print layout; no arbitrary AI code. |
+| Event Day Command Center | Saved task statuses/owners/expected times, custom operations, vendor arrivals, incidents, activity history, transparent readiness and read-only grounded copilot. Incident recovery reuses Event Rescue preview/approval. |
 | Event creation | Five-step wizard and reviewed natural-language intake; supported event types include weddings, birthdays, community events, anniversaries and baby showers. |
+| Guest List & RSVP Manager | Owned guest CRUD, five groups, four manual party RSVP states, plus-ones, requirements, search/filter and confirmed/possible attendance totals. Planning headcount changes still require review. |
+| Vendor Negotiation Assistant | Seven quote-based request types, constrained Gemini strategy or deterministic fallback, editable/copyable text and private versioned draft save/reopen. No sending or automatic budget write. |
 | Persistent workspaces | SQLite event details, plans, progress, vendor records, expense ledger, chat, history and isolated previews. Reopen by browser cookie and event URL. |
 | Budget Guardian | Editable expenses and category allowances; exact-cent estimates, quotes, commitments and cumulative paid amounts; missing-price and exposure warnings. |
 | Scenario Studio / Digital Twin | Six isolated types: budget reduction, guest count, date, supplier cancellation, venue/catering cost and additional function. Compare, discard, or explicitly approve a feasible current preview. |
@@ -20,7 +44,7 @@ The supplied Challenge 5 statement is: ?Create a GenAI-powered planning assistan
 | Decision Engine | Evidence-backed recommendations, uncertainty and optional isolated proposals. No automatic write or invented savings. |
 | Quote Analyzer | Bounded labeled UTF-8 `.txt`/paste, exact reconciliation, source evidence, terms and up to three source comparisons. Explicitly reviewed quote/commitment recording; a deposit quote is not money paid. No PDF/OCR or universal contract parser. |
 | Design Studio | Three local CSS mood-board recipes, editable brief/palette, actual saved allowance links and a reopenable preferred concept. Optional Gemini orders allowed styles; these are not photos or priced vendor offerings. |
-| Timeline intelligence | Dated milestones/checklists, calendar/print export, recorded dependency checks and read-only delay/buffer analysis. No invented owners, durations or event-day schedule. |
+| Timeline intelligence | Original dated milestones/checklists, calendar/print export and read-only day-based delay analysis remain. Event Day adds explicit user-entered times/owners/dependencies without inventing durations or moving the original schedule. |
 | Event Readiness Intelligence | Five dimensions, fourteen pass/attention/unknown evidence checks and three next actions linked to existing workflows. A check count is not a readiness score or a fully-ready certificate. |
 | Frontend | Responsive vanilla HTML/CSS/ES modules, cinematic CSS 3D/scroll sequence, keyboard controls, shared motion pause and static reduced-motion fallbacks. No npm install or asset build. |
 
@@ -106,6 +130,16 @@ AI cannot override saved-event ownership, revision/day checks, feasibility, appr
 
 ## Testing and evaluation
 
+Final integration audit (30 October 2026): **896 tests passed / 98.31% coverage**, two existing warnings, and **30 browser checkpoint groups passed**. Four reproduced integrity/reliability defects were repaired; original workflows, ownership, budgets and landing remain intact. Suitable for a supervised local demo; public deployment is conditional and production readiness remains unverified. [Findings, exact commands, limitations and deployment checklist](docs/FINAL_AUDIT.md).
+
+Website stage (30 October 2026): **889 passed / 98.31% coverage**, two existing warnings; **72 new feature cases**, **28 real-browser checkpoint groups**. Ruff/format, 51 authored JS checks plus vendor syntax, exact-cent/geometry, 30 offline evaluations, startup/restart, compilation and release checks passed locally. [Execution evidence and limitations](docs/EVENT_WEBSITES.md).
+
+Event Day stage (29 October 2026): **817 passed / 98.56% coverage**, two existing deprecation warnings; **42 new cases**, **27 real-browser checkpoint groups**, Ruff/format, JavaScript syntax, exact-cent checks and restart persistence verified locally. [Exact commands, file inventory, storage/clock rules and deployment limits](docs/EVENT_DAY_COMMAND_CENTER.md).
+
+Guest/negotiation stage (29 October 2026): fresh baseline **708 / 98.84%**; final Python **775 passed / 98.72%**, two existing warnings; **67 new feature cases** and **26 browser checkpoint groups passed**, zero runtime exceptions. Exact execution evidence are in [GUESTS_NEGOTIATION.md](docs/GUESTS_NEGOTIATION.md). Earlier audit/release counts below are dated historical snapshots.
+
+Current bug/security sweep (28 October 2026): **708 tests / 98.84% coverage**, two existing warnings, after a fresh 684-test baseline; **24 browser checkpoint groups** passed with no runtime exceptions. Five reproduced defects fixed, including calendar IDs/escaping, error headers, Escape navigation and the API docs CSP conflict. `/api/docs` now serves pinned Swagger assets locally under the unchanged strict CSP; license/provenance/update policy: [vendor notes](vendor/swagger-ui-5.34.0/README.md). Full findings, browser verification, exact commands, changed files and unsupported workflows: [BUG_SECURITY_AUDIT.md](docs/BUG_SECURITY_AUDIT.md).
+
 Release-preparation verification on **28 October 2026**: **682 tests passed, 98.78% combined statement/branch coverage**, two existing warnings; all **21 browser checkpoint groups** passed. The fresh pre-cleanup baseline was 670 / 98.78%; twelve release-audit regressions were added without changing original tests. Current release-preparation results and exact file/size evidence are in [GITHUB_RELEASE_AUDIT.md](docs/GITHUB_RELEASE_AUDIT.md); hosted CI and live Gemini are not claimed verified.
 
 ```powershell
@@ -144,10 +178,10 @@ The complete saved product needs **one instance/worker with durable writable SQL
 
 The application retains its actual 20,000-byte request cap, security headers/CSP, no-store workspace responses, origin checks, explicit proxy trust and bounded/locked rate limiter. Quotas/cache are process-local. It is not an account system, distributed quota service or certified production multi-user platform. Security reporting and release hygiene: [SECURITY.md](SECURITY.md).
 
-General PDFs/OCR, RSVP/seating rosters, verified vendor matchmaking, quantitative sustainability scores, live notifications, day-of task ownership, payment processing/refunds/FX, custom prerequisite editing and account recovery remain unsupported/deferred. Live Gemini, formal accessibility certification, high-volume/production performance, hosted CI and public competition submission compliance remain unverified. No users, awards, rankings or model accuracy are claimed.
+General PDFs/OCR, invitation delivery/verified guest identities, personal photo uploads and seating plans, verified vendor matchmaking, quantitative sustainability scores, live notifications, payment processing/refunds/FX, automatic duration-based rescheduling and account recovery remain unsupported/deferred. Live Gemini, formal accessibility certification, high-volume/production performance, hosted CI and public competition submission compliance remain unverified. No users, awards, rankings or model accuracy are claimed.
 
 Use the [release checklist and publishing commands](docs/GITHUB_RELEASE_CHECKLIST.md). The audit verifies a disposable Git candidate index; local `.venv`, databases, secrets, screenshots, profiles and backup archives are excluded and retained privately. No repository was committed, pushed or published by this cleanup.
 
 ## License
 
-The existing [MIT license](LICENSE), copyright 2026 Ayush, is preserved unchanged. Check dependency licenses and your rights to any future contributed imagery or data before redistribution.
+The existing [MIT license](LICENSE), copyright 2026 Ayush, is preserved unchanged. The self-hosted Swagger distribution has its own [Apache-2.0 license and notices](vendor/swagger-ui-5.34.0/README.md). Check dependency licenses and your rights to any future contributed imagery or data before redistribution.

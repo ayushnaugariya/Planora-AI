@@ -40,7 +40,7 @@ def rate_limited(ip: str, now: float | None = None) -> int:
 def secure_response(response: Response, path: str) -> Response:
     for k, v in SECURITY_HEADERS.items():
         response.headers.setdefault(k, v)
-    if path.startswith("/api/"):
+    if path.startswith(("/api/", "/e/")):
         response.headers.setdefault("Cache-Control", "no-store")
     elif path.startswith("/static/"):
         # Unversioned module/style dependencies must revalidate after an upgrade.
@@ -50,7 +50,7 @@ def secure_response(response: Response, path: str) -> Response:
 
 async def guard(request: Request, call_next):
     path = request.url.path
-    if protected_api_path(path):
+    if protected_api_path(path) or path.startswith("/e/"):
         if any(
             declared_body_too_large(length, MAX_BODY_BYTES)
             for length in request.headers.getlist("content-length")

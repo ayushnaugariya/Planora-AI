@@ -111,7 +111,10 @@ def update_event(event_id: UUID, body: EventUpdate, request: Request, owner: Own
         ):
             raise HTTPException(status_code=422, detail="Progress contains unknown task or checklist IDs")
         for task in workspace.tasks:
-            task.completed = task.id in body.progress.completed_tasks
+            # Legacy controls manage planning steps only. Command Center owns
+            # event-category completion, which an unrelated checklist save must retain.
+            if task.id in task_ids:
+                task.completed = task.id in body.progress.completed_tasks
         for vendor in workspace.vendors:
             for item in vendor.checklist:
                 item.completed = item.id in body.progress.completed_checks
@@ -160,7 +163,10 @@ def event_chat(event_id: UUID, body: EventChat, request: Request, owner: Owner):
 def event_ics(event_id: UUID, request: Request, owner: Owner):
     workspace = repository(request).get(owner, str(event_id))
     body = engine.to_ics(
-        workspace.plan.title, workspace.plan.timeline, datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        workspace.plan.title,
+        workspace.plan.timeline,
+        datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ"),
+        calendar_id=str(workspace.id),
     )
     return Response(
         body,

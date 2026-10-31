@@ -17,12 +17,16 @@ COOKIE = "eventra_workspace_session"
 _TOKEN = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
-def owner_session(request: Request, response: Response) -> str:
+def enforce_same_origin(request: Request) -> None:
     if request.method not in ("GET", "HEAD"):
         origin = request.headers.get("origin")
         expected = f"{request.url.scheme}://{request.url.netloc}"
         if request.headers.get("sec-fetch-site") == "cross-site" or (origin and origin != expected):
             raise HTTPException(status_code=403, detail="Cross-origin workspace changes are not allowed")
+
+
+def owner_session(request: Request, response: Response) -> str:
+    enforce_same_origin(request)
     token = request.cookies.get(COOKIE, "")
     if not _TOKEN.fullmatch(token):
         token = secrets.token_urlsafe(32)

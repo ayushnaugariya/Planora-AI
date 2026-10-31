@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, timedelta
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from app.schemas.planning import (
     AIExtras,
@@ -723,7 +724,8 @@ def _ics_escape(text: str) -> str:
         text.replace("\\", "\\\\")
         .replace(";", "\\;")
         .replace(",", "\\,")
-        .replace("\r\n", "\\n")
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
         .replace("\n", "\\n")
     )
 
@@ -748,7 +750,10 @@ def _fold(line: str) -> list[str]:
     return [out[0]] + [" " + s for s in out[1:]]
 
 
-def to_ics(title: str, milestones: list[Milestone], stamp: str) -> str:
+def to_ics(title: str, milestones: list[Milestone], stamp: str, *, calendar_id: str | None = None) -> str:
+    # A workspace retains identity across exports/date changes. Stateless exports
+    # have no saved identity and receive a fresh namespace, independent of time.
+    namespace = uuid5(NAMESPACE_URL, f"eventra:{calendar_id}") if calendar_id is not None else uuid4()
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -759,7 +764,7 @@ def to_ics(title: str, milestones: list[Milestone], stamp: str) -> str:
         end = m.due + timedelta(days=1)
         lines += [
             "BEGIN:VEVENT",
-            f"UID:eventra-{stamp}-{i}@eventra.local",
+            f"UID:eventra-{uuid5(namespace, str(i))}@eventra.local",
             f"DTSTAMP:{stamp}",
             f"DTSTART;VALUE=DATE:{m.due:%Y%m%d}",
             f"DTEND;VALUE=DATE:{end:%Y%m%d}",

@@ -1,3 +1,8 @@
+import {mountWebsiteEditor} from '/static/modules/website-editor.js';
+import {mountCommandCenter} from '/static/modules/command-center.js';
+import {mountNegotiation} from '/static/modules/negotiation.js';
+import {mountGuests} from '/static/modules/guests.js';
+import {mountEventPortal} from '/static/modules/event-portal.js';
 import {state} from '/static/modules/state.js';
 import {$,h,clear,store,reduceMotion,isoLocal,fmtDate,money,setCurrency,financialMoney} from '/static/modules/helpers.js';
 import {api} from '/static/modules/api.js';
@@ -288,7 +293,10 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     try { await refreshEvents(); } catch (err) { workspaceStatus("Your change was saved. The event list could not refresh.", err.message); }
   }
 
-  function hasUnsavedDetails(ignoreQuoteDraft = false) {
+  function hasUnsavedDetails(ignoreQuoteDraft = false, ignoreGuestDraft = false, ignoreNegotiationDraft = false, ignoreCommandDraft = false, ignoreWebsiteDraft = false) {
+    if (!ignoreWebsiteDraft && state.websiteDirty) return true;
+    if (!ignoreCommandDraft && state.commandDirty) return true;
+    if ((!ignoreGuestDraft && state.guestDirty) || (!ignoreNegotiationDraft && state.negotiationDirty)) return true;
     if (state.expenseDirty || state.allocationDirty || state.scenarioDirty || state.quoteDirty && !ignoreQuoteDraft) return true;
     if (!state.workspace) return newDraftDirty;
     const details = readForm();
@@ -366,7 +374,7 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   async function saveProgress(checkbox, id, isTask) {
     const previous = !checkbox.checked;
     if (state.workspaceBusy) { checkbox.checked = previous; return; }
-    const tasks = new Set(state.workspace.tasks.filter((t) => t.completed).map((t) => t.id));
+    const tasks = new Set(state.workspace.tasks.filter((t) => t.completed && state.workspace.plan.timeline[t.milestone_index].category !== "event").map((t) => t.id));
     const checks = new Set(state.workspace.vendors.flatMap((v) => v.checklist.filter((c) => c.completed).map((c) => c.id)));
     const selected = isTask ? tasks : checks;
     if (checkbox.checked) selected.add(id); else selected.delete(id);
@@ -420,3 +428,11 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     if (selected && events.some((event) => event.id === selected)) await openWorkspace(selected);
     else workspaceStatus(events.length ? "Choose an event to continue planning." : "No saved events yet. Save your first plan below.");
   }).finally(()=>{state.booting=false;shell.route();});
+
+mountEventPortal();
+
+mountGuests({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetails});
+
+mountNegotiation({api,setWorkspaceBusy,hasUnsavedDetails});
+mountCommandCenter({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetails});
+mountWebsiteEditor({api,setWorkspaceBusy,hasUnsavedDetails});

@@ -51,7 +51,7 @@ export function mountCoordination({api,applyWorkspace,setWorkspaceBusy,saveProgr
     checklist();const details=state.workspace.details;
     const root=$('guest-summary');clear(root);
     const item=(name,value)=>h('div',{},h('dt',{text:name}),h('dd',{text:value}));
-    root.append(h('dl',{},item('Saved headcount',String(details.guest_count)),item('Dietary preferences',details.dietary.join(', ')||'None recorded'),item('Individual RSVPs','Not tracked')));
+    root.append(h('dl',{},item('Saved headcount',String(details.guest_count)),item('Dietary preferences',details.dietary.join(', ')||'None recorded'),item('Individual RSVPs','Managed in the private guest list below')));
     $('guest-needs').textContent=details.accessibility_requirements||'No accessibility requirements recorded. Add them in event details.';
     if(document.activeElement!==$('guest-proposed'))$('guest-proposed').value=details.guest_count;
   }

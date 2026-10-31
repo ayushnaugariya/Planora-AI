@@ -25,6 +25,11 @@ class WorkspaceRepository(SQLiteStore):
             raise UnsupportedSchema("Invalid saved workspace") from exc
 
     @staticmethod
+    def _check_record(workspace, event_id, revision):
+        if str(workspace.id) != str(event_id) or workspace.revision != revision:
+            raise UnsupportedSchema("Workspace identity/revision integrity check failed")
+
+    @staticmethod
     def _read(connection, owner: str, event_id: str) -> EventWorkspace:
         row = connection.execute(
             "SELECT document, revision FROM events WHERE id=? AND owner=?", (event_id, owner)
@@ -32,8 +37,7 @@ class WorkspaceRepository(SQLiteStore):
         if row is None:
             raise WorkspaceNotFound
         workspace = WorkspaceRepository._decode(row[0])
-        if workspace.revision != row[1]:
-            raise UnsupportedSchema("Workspace revision integrity check failed")
+        WorkspaceRepository._check_record(workspace, event_id, row[1])
         return workspace
 
     def create(self, owner: str, workspace: EventWorkspace, *, if_absent: bool = False) -> EventWorkspace:
@@ -63,8 +67,14 @@ class WorkspaceRepository(SQLiteStore):
 
     def list(self, owner: str) -> list[EventSummary]:
         with self._connection() as connection:
-            rows = connection.execute("SELECT document FROM events WHERE owner=?", (owner,)).fetchall()
-        events = [self._decode(row[0]) for row in rows]
+            rows = connection.execute(
+                "SELECT id, document, revision FROM events WHERE owner=?", (owner,)
+            ).fetchall()
+        events = []
+        for event_id, document, revision in rows:
+            workspace = self._decode(document)
+            self._check_record(workspace, event_id, revision)
+            events.append(workspace)
         events.sort(key=lambda event: event.updated_at, reverse=True)
         return [
             EventSummary(
@@ -82,21 +92,26 @@ class WorkspaceRepository(SQLiteStore):
             # Acquire the write lock before checking existence/revision; the
             # complete document and history are committed or rolled back together.
             connection.execute("BEGIN IMMEDIATE")
-            current = self._read(connection, owner, str(workspace.id))
-            if current.revision != expected_revision:
-                raise RevisionConflict
-            if workspace.revision != expected_revision + 1:
-                raise RevisionConflict
-            connection.execute(
-                "UPDATE events SET revision=?, document=? WHERE id=? AND owner=?",
-                (
-                    workspace.revision,
-                    workspace.model_dump_json(exclude=WORKSPACE_DERIVED),
-                    str(workspace.id),
-                    owner,
-                ),
-            )
+            self._save(connection, owner, workspace, expected_revision)
         return workspace
+
+    @staticmethod
+    def _save(connection, owner, workspace, expected_revision):
+        """CAS write inside an existing transaction, also used by owned child edits."""
+        current = WorkspaceRepository._read(connection, owner, str(workspace.id))
+        if current.revision != expected_revision:
+            raise RevisionConflict
+        if workspace.revision != expected_revision + 1:
+            raise RevisionConflict
+        connection.execute(
+            "UPDATE events SET revision=?, document=? WHERE id=? AND owner=?",
+            (
+                workspace.revision,
+                workspace.model_dump_json(exclude=WORKSPACE_DERIVED),
+                str(workspace.id),
+                owner,
+            ),
+        )
 
     def delete(self, owner: str, event_id: str, expected_revision: int) -> None:
         with self._connection() as connection:

@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY frontend ./frontend
+COPY vendor ./vendor
 
 # Run as an unprivileged user
 RUN useradd --create-home appuser && mkdir -p /srv/data && chown appuser:appuser /srv/data
