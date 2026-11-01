@@ -70,3 +70,9 @@ test-results/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local marketing screenshots and accidentally redirected console output
+/1.png
+/2.png
+/Planora-AI-post/
+/bject Name, Length
