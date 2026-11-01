@@ -338,13 +338,13 @@ const {
     }
   }
 
-  function hasUnsavedDetails(
+  function hasUnsavedDetails({
     ignoreQuoteDraft = false,
     ignoreGuestDraft = false,
     ignoreNegotiationDraft = false,
     ignoreCommandDraft = false,
     ignoreWebsiteDraft = false
-  ) {
+  } = {}) {
     if (!ignoreWebsiteDraft && state.websiteDirty) return true;
     if (!ignoreCommandDraft && state.commandDirty) return true;
     if ((!ignoreGuestDraft && state.guestDirty) || (!ignoreNegotiationDraft && state.negotiationDirty)) return true;

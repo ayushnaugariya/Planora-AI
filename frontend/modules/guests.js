@@ -239,7 +239,7 @@ export function mountGuests({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetai
   }
   async function mutate(fn){
     if(!state.workspace||state.workspaceBusy)return;
-    if(hasUnsavedDetails(false,true)){
+    if(hasUnsavedDetails({ignoreGuestDraft:true})){
       error.textContent='Save or cancel other unsaved edits first.';error.hidden=false;return;
     }
     if(!data||data.revision!==state.workspace.revision){

@@ -77,7 +77,7 @@ export function mountQuoteComparison(
   category.addEventListener('change',choices);
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(!state.workspace||state.workspaceBusy)return;
-    if(hasUnsavedDetails(true)){
+    if(hasUnsavedDetails({ignoreQuoteDraft:true})){
       status.textContent='Save or clear other unsaved edits before comparing the saved event.';return;
     }
     const records=state.workspace.expenses.filter(item=>!item.cancelled&&item.category_key===category.value);
@@ -110,7 +110,7 @@ export function mountQuoteComparison(
         const button=h('button',{type:'button',class:'ghost',text:`Review quote ${i===0?'A':'B'} →`});
         button.addEventListener('click',()=>{
           if(state.workspace?.id!==eventId)return;
-          if(hasUnsavedDetails(true)){
+          if(hasUnsavedDetails({ignoreQuoteDraft:true})){
             status.textContent='Save or clear unsaved edits before opening this preview.';return;
           }
           state.selectedScenario=preview;

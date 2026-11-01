@@ -648,7 +648,7 @@ export function mountCommandCenter({api,applyWorkspace,setWorkspaceBusy,hasUnsav
   }
   async function saveOperation(name,action){
     if(!data||!state.workspace||state.workspaceBusy)return;
-    if(hasUnsavedDetails(false,false,false,true)){
+    if(hasUnsavedDetails({ignoreCommandDraft:true})){
       fail(Error('Save or cancel other workspace edits first.'));return;
     }
     const id=state.workspace.id;let body;

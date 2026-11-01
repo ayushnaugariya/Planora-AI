@@ -249,7 +249,7 @@ export function mountNegotiation({api,setWorkspaceBusy,hasUnsavedDetails}){
   );
   async function action(fn){
     if(!state.workspace||!vendor.value||state.workspaceBusy)return;
-    if(hasUnsavedDetails(false,false,true)){
+    if(hasUnsavedDetails({ignoreNegotiationDraft:true})){
       error.textContent='Save or cancel other unsaved edits first.';error.hidden=false;return;
     }
     const id=state.workspace.id,

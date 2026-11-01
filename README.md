@@ -164,7 +164,7 @@ node tests/browser/browser_workspace_smoke.mjs .venv/Scripts/python.exe
 - Coverage is combined statement and branch coverage over `app/`, with a 90% floor enforced.
 - The suite covers unit, integration, security (ownership isolation, CSRF/origin, body limits, proxy spoofing, AI boundaries), public RSVP, publish and unpublish, exact-cent budgets, Event Day workflows and regressions for previously fixed defects.
 
-Current measured results are recorded in [docs/REPOSITORY_EVALUATION_READINESS.md](docs/REPOSITORY_EVALUATION_READINESS.md). The previous full audit is in [docs/FINAL_AUDIT.md](docs/FINAL_AUDIT.md).
+Current measured results are recorded in [docs/FINAL_EVALUATION_OPTIMIZATION.md](docs/FINAL_EVALUATION_OPTIMIZATION.md). Earlier optimization results are in [docs/REPOSITORY_EVALUATION_READINESS.md](docs/REPOSITORY_EVALUATION_READINESS.md), and the previous full audit is in [docs/FINAL_AUDIT.md](docs/FINAL_AUDIT.md).
 
 ## 8. Demo walkthrough (about 5 minutes, offline)
 

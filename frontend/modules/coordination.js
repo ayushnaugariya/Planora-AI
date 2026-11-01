@@ -5,6 +5,21 @@ import {notify} from './shell.js';
 export function mountCoordination({api,applyWorkspace,setWorkspaceBusy,saveProgress,go,hasUnsavedDetails}) {
   let vendorId=null;
   const dialog=$('vendor-dialog');
+  dialog.addEventListener('close',()=>{
+    const closedVendorId=vendorId;
+    // Saving rebuilds the vendor list before the native dialog can restore focus.
+    requestAnimationFrame(()=>{
+      if(dialog.open)return;
+      const opener=$('vendor-list').querySelector(`[data-vendor-id="${closedVendorId}"]`);
+      const section=opener?.closest('details');
+      // A collapsed section keeps its summary focusable; a removed opener uses the labelled panel.
+      for(const target of [section?.open?opener:null,section?.querySelector('summary'),$('panel-vendors')]){
+        if(!target||target.disabled||!target.getClientRects().length)continue;
+        target.focus();
+        if(document.activeElement===target)return;
+      }
+    });
+  });
   $('vendor-dialog-close').addEventListener('click',()=>dialog.close());
   $('vendor-list').addEventListener('click',e=>{
     const button=e.target.closest('[data-vendor-id]');

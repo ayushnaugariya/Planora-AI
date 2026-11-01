@@ -430,7 +430,7 @@ export function mountWebsiteEditor({api,setWorkspaceBusy,hasUnsavedDetails}){
     }}
   async function action(kind,fn){
     if(!state.workspace||state.workspaceBusy||!loaded)return;
-    if(kind!=='unpublish'&&hasUnsavedDetails(false,false,false,false,true)){
+    if(kind!=='unpublish'&&hasUnsavedDetails({ignoreWebsiteDraft:true})){
       fail(Error('Save or cancel other workspace edits first.'));return;
     }const id=state.workspace.id;
     setWorkspaceBusy(true);

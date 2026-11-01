@@ -4,6 +4,7 @@ import {checkCommandCenter} from './command_center_smoke.mjs';
 import {checkWebsites} from './website_smoke.mjs';
 import {checkLegacyCompletion,checkPublicTimeouts} from './final_audit_smoke.mjs';
 import {checkAuditNavigation,checkAuditDocs} from './audit_regression_smoke.mjs';
+import {checkWizardKeyboard,checkVendorFocus} from './optimization_smoke.mjs';
 // Additional real-browser product checks, invoked by browser_workspace_smoke.mjs.
 import assert from 'node:assert/strict';
 import {mkdirSync,writeFileSync} from 'node:fs';
@@ -68,6 +69,7 @@ export async function runProductSmoke({evaluate,send,waitFor,savedEvent,restart}
   await evaluate(`(()=>{const previous=window.confirm;try{window.confirm=()=>false;const select=document.getElementById('saved-event-select');select.value=${JSON.stringify(eventsBefore[0].id)};select.dispatchEvent(new Event('change'));}finally{window.confirm=previous;}})()`);
   assert.equal(await evaluate("document.getElementById('saved-event-select').value"),'');
   assert.equal(await evaluate("document.getElementById('title').value"),'Planora product smoke');
+  await checkWizardKeyboard({evaluate,send,waitFor,click,values});
   await click('#wizard-next');
   await values({city:'Pune',guest_count:'60'});await click('#wizard-next');
   await values({budget:'90000',currency:'INR'});await click('#wizard-next');
@@ -80,10 +82,7 @@ export async function runProductSmoke({evaluate,send,waitFor,savedEvent,restart}
   await waitFor(visible('app-shell'));
   const id=await evaluate("JSON.parse(localStorage.getItem('eventra:selected-event'))");
   assert(id);await waitFor(visible('panel-overview'));await capture('overview-desktop');
-  await click('#tab-vendors');await waitFor(visible('panel-vendors'));await click('[data-vendor-id]');
-  assert(await evaluate("document.getElementById('vendor-dialog').open"));
-  await values({'vendor-edit-name':'Test garden venue','vendor-edit-contact':'venue@example.test','vendor-edit-status':'booked'});
-  await click('#vendor-edit-save');await waitFor("!document.getElementById('vendor-dialog').open&&!document.getElementById('submit-btn').disabled");
+  await checkVendorFocus({evaluate,send,waitFor,click,values,savedEvent,id});
   let event=await savedEvent(id);assert.equal(event.vendors[0].name,'Test garden venue');assert.equal(event.vendors[0].booking_status,'booked');
   await capture('vendors-desktop');
   await click('#tab-checklist');await waitFor(visible('panel-checklist'));

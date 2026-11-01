@@ -6,7 +6,8 @@ Start with the project [README](../README.md). This index groups the documents b
 
 | Document | Purpose |
 | --- | --- |
-| [REPOSITORY_EVALUATION_READINESS.md](REPOSITORY_EVALUATION_READINESS.md) | Current verification results, problem-statement mapping, size and submission checklist |
+| [FINAL_EVALUATION_OPTIMIZATION.md](FINAL_EVALUATION_OPTIMIZATION.md) | Final optimization findings, regressions, measured verification and submission recommendation |
+| [REPOSITORY_EVALUATION_READINESS.md](REPOSITORY_EVALUATION_READINESS.md) | Earlier optimization snapshot; historical results and submission checklist |
 | [FINAL_AUDIT.md](FINAL_AUDIT.md) | Full integration, security and readiness audit, with findings by severity |
 | [JUDGE_DEMO.md](JUDGE_DEMO.md) | Core demo walkthrough |
 

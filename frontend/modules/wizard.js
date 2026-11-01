@@ -39,7 +39,21 @@ export function mountWizard({readForm, showFormError}) {
     String(maximum.getMonth()+1).padStart(2,'0'),
     String(maximum.getDate()).padStart(2,'0')
   ].join('-');
-  let active = 0;
+  let active = 0, invalidInput = null, previousDescription = null;
+  function clearValidation() {
+    if (invalidInput) {
+      invalidInput.removeAttribute('aria-invalid');
+      if (previousDescription === null) invalidInput.removeAttribute('aria-describedby');
+      else invalidInput.setAttribute('aria-describedby', previousDescription);
+      invalidInput = null;
+    }
+    showFormError('');
+  }
+  function clearCorrectedField(event) {
+    if (event.target === invalidInput && invalidInput.checkValidity()) clearValidation();
+  }
+  form.addEventListener('input', clearCorrectedField);
+  form.addEventListener('change', clearCorrectedField);
   function render() {
     groups.forEach((group, index) => { group.hidden = index !== active; });
     back.hidden = active === 0;
@@ -64,31 +78,49 @@ export function mountWizard({readForm, showFormError}) {
     }
   }
   function valid() {
+    clearValidation();
     for (const input of groups[active].querySelectorAll('input,select,textarea')) {
       if (!input.disabled && !input.checkValidity()) {
+        invalidInput = input;
+        previousDescription = input.getAttribute('aria-describedby');
+        const descriptions = new Set((previousDescription || '').split(/\s+/).filter(Boolean));
+        descriptions.add('form-error');
+        input.setAttribute('aria-describedby', [...descriptions].join(' '));
         showFormError(input.validationMessage || 'Please check this field.');
         input.setAttribute('aria-invalid', 'true'); input.focus(); return false;
       }
       input.removeAttribute('aria-invalid');
     }
-    showFormError(''); return true;
+    return true;
+  }
+  function moveTo(index) {
+    clearValidation();
+    active = index;
+    render();
+    groups[active].querySelector('h2').focus();
   }
   next.addEventListener(
     'click',
     () => {
       if (valid()) {
-        active = Math.min(4, active + 1);
-        render();
-        groups[active].querySelector('input,select,textarea,h2')?.focus();
+        moveTo(Math.min(4, active + 1));
       }
     }
   );
-  back.addEventListener('click', () => { active = Math.max(0, active - 1); showFormError(''); render(); });
+  back.addEventListener('click', () => moveTo(Math.max(0, active - 1)));
   form.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && active < 4 && event.target.tagName !== 'TEXTAREA') {
+    if (
+      event.key === 'Enter' && !event.isComposing && !event.defaultPrevented && active < 4 &&
+      event.target.matches('input') && [
+        'text','search','email','url','tel','password','number','date','time','datetime-local','month','week'
+      ].includes(event.target.type)
+    ) {
       event.preventDefault(); next.click();
     }
   });
   render();
-  return {open() {active = 0; render();}, review() {active = 4; render();}};
+  return {
+    open() {clearValidation(); active = 0; render();},
+    review() {clearValidation(); active = 4; render();}
+  };
 }
