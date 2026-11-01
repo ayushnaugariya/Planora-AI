@@ -210,4 +210,13 @@ Full details: [docs/FINAL_AUDIT.md](docs/FINAL_AUDIT.md) and [docs/DEPLOYMENT.md
 
 ## License
 
-[MIT](LICENSE), copyright 2026 Ayush. The self-hosted Swagger UI is Apache-2.0 ([notices](vendor/swagger-ui-5.34.0/README.md)).
+[Planora AI Source-Available License v1.0](LICENSE), copyright 2026 Ayush.
+Local noncommercial learning/testing, private evaluation and contributions back
+to this repository are permitted under its terms. Other redistribution, reuse
+in another product, commercial use and hosted deployment require prior written
+permission. Preserve attribution and do not claim authorship of the original
+work. This is a custom source-available license, not an open-source license.
+
+Earlier MIT-licensed versions retain their previously granted permissions.
+Third-party licenses remain unchanged, including Apache-2.0 for the self-hosted
+Swagger UI ([notices](vendor/swagger-ui-5.34.0/README.md)).

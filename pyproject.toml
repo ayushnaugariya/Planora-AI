@@ -3,7 +3,7 @@ name = "eventra"
 version = "1.0.0"
 description = "GenAI-powered celebration and event planner"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",

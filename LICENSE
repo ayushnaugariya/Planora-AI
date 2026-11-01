@@ -1,21 +1,101 @@
-MIT License
+Planora AI Source-Available License v1.0
 
-Copyright (c) 2026 Ayush
+Copyright (c) 2026 Ayush. All rights reserved except as expressly granted below.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Effective for versions first published with this license on or after
+2 November 2026.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Scope and ownership
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This license covers the Planora AI source code, original assets and documentation
+to the extent the copyright holder has authority to license them (the "Software").
+The official repository is https://github.com/ayushnaugariya/Planora-AI.
+This is a custom source-available license, not an open-source license.
+Access to the source does not transfer ownership of the Software.
+
+2. Limited permissions
+
+Subject to the conditions below, you may:
+
+a. Download, copy, run and modify the Software locally for your own noncommercial
+   learning, experimentation and testing.
+b. Review and evaluate the Software in a private evaluation environment,
+   including for hackathon judging, without offering it as a service to others.
+c. Create a GitHub fork and publish changes in that fork for the purpose of
+   proposing contributions to the official repository. Such a fork must retain
+   this license and attribution, identify its upstream source and any changes,
+   and must not be presented as an independently authored or official project.
+d. Submit your changes to the official repository through pull requests, or push
+   changes directly only when its maintainer has separately granted you access.
+
+These permissions do not grant permission for production deployment, use in
+another product, or distribution outside the contribution workflow above.
+
+3. Conditions and restrictions
+
+Keep this license and the applicable copyright and attribution notices in all
+permitted copies, forks and modifications. Clearly distinguish your own changes
+from the original work. You may credit your own contributions, but must not
+claim that you created or own the original Software, remove its authorship
+notices, or imply endorsement by its copyright holder.
+
+Except for the permissions in section 2, or rights independently available under
+section 5, you must obtain the copyright holder's prior written permission to:
+
+a. Redistribute, publish, sublicense, sell or license the Software or substantial
+   portions of it, whether modified or unmodified.
+b. Incorporate the Software or substantial portions into another project,
+   product or service, including a rebranded or competing application.
+c. Use the Software commercially, for business operations, or to provide a
+   publicly accessible or hosted service.
+
+No trademark rights or right to represent yourself as the official maintainer
+are granted. All rights not expressly granted are reserved. Permissions under
+this license terminate upon your breach of its conditions, to the extent
+permitted by applicable law; independently held rights under section 5 remain.
+
+4. Contributions
+
+You retain ownership of your independently created contributions. By knowingly
+submitting a contribution for inclusion in the official repository, you confirm
+that you have the necessary rights and grant the project copyright holder a
+nonexclusive, worldwide, perpetual, irrevocable, royalty-free license to use,
+reproduce, modify and distribute that contribution as part of Planora AI under
+this license. You also permit recipients to exercise section 2 for the included
+contribution. This is not a copyright assignment. Different contribution terms
+require a separate written agreement. Submission does not guarantee acceptance
+or grant write access to the official repository.
+
+5. Earlier versions, third-party materials and independent rights
+
+This license does not revoke or restrict permissions already granted for earlier
+versions under the MIT License or another license. Someone who obtained those
+versions may continue exercising the rights granted by those terms. This license
+does not impose new conditions on copies already licensed under earlier terms.
+
+Third-party materials and dependencies retain their own licenses. In particular,
+the Swagger UI materials in vendor/swagger-ui-5.34.0 retain their Apache-2.0
+license and accompanying notices. This license neither replaces those terms nor
+claims ownership of third-party work.
+
+Nothing here limits rights independently granted by GitHub's applicable Terms
+of Service, including rights associated with viewing and forking public
+repositories, or exceptions and limitations under applicable law. The additional
+local-use and contribution permissions in section 2 remain subject to this
+license to the extent they are not independently available under those rights.
+
+6. Disclaimer and limitation of liability
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS ARE NOT LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE, WHETHER IN CONTRACT,
+TORT OR OTHERWISE. NOTHING HERE EXCLUDES LIABILITY THAT CANNOT LAWFULLY BE
+EXCLUDED.
+
+7. Requests for additional permission
+
+Contact the copyright holder through the official repository identified above
+to request a separate written license. Silence, public visibility of the source,
+or acceptance of an unrelated contribution is not additional permission.

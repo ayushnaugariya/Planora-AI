@@ -1,5 +1,14 @@
 # Contributing
 
+Contributions are welcome under the [Planora AI Source-Available License v1.0](LICENSE).
+You may work locally and use a clearly attributed GitHub fork to submit a pull
+request to this repository. You retain ownership of your own contributions and
+grant the project the permissions described in the license when submitting them.
+Do not submit code you lack permission to contribute. Direct pushes require
+maintainer access; a fork or pull request does not grant that access. General
+redistribution, commercial use and use in another product require separate written
+permission. Existing third-party and earlier-version license rights remain intact.
+
 Planora AI extends an existing Eventra application. Preserve working APIs, accounting, ownership and approval rather than replacing architecture for preference. Read [README](README.md), [budget rules](docs/BUDGET_RULES.md), [upgrade plan](docs/UPGRADE_PLAN.md) and the relevant dated report before changing behavior.
 
 Use a virtual environment and the documented setup. The pinned `requirements-ci.txt` is the recorded Windows/CPython 3.14.2 validation environment; other platforms use the normal manifests and require their own checks. Never use a personal database or real vendor/user data in tests. Existing pytest and browser fixtures use temporary SQLite files and fake providers.
