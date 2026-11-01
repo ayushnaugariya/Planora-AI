@@ -1,13 +1,16 @@
 """One owned preferred concept per event, checked against the current event revision."""
 
+from uuid import UUID
+
 from pydantic import ValidationError
 
 from app.core.errors import RevisionConflict, UnsupportedSchema
 from app.db.design_preferences import ensure_design_schema
+from app.repositories.workspaces import WorkspaceRepository
 from app.schemas.intelligence import PreferredDesign
 
 
-def save_preferred(repo, owner, preference):
+def save_preferred(repo: WorkspaceRepository, owner: str, preference: PreferredDesign) -> PreferredDesign:
     with repo._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         event = repo._read(connection, owner, str(preference.event_id))
@@ -34,7 +37,7 @@ def save_preferred(repo, owner, preference):
     return preference
 
 
-def read_preferred(repo, owner, event_id):
+def read_preferred(repo: WorkspaceRepository, owner: str, event_id: UUID) -> PreferredDesign | None:
     with repo._connection() as connection:
         event = repo._read(connection, owner, str(event_id))
         if not connection.execute(

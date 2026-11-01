@@ -1,7 +1,9 @@
 """Explainable saved-state guidance. No inferred market prices or mutation authority."""
 
+from app.schemas.workspaces import EventWorkspace
 
-def planning_attention(workspace):
+
+def planning_attention(workspace: EventWorkspace) -> str:
     summary = workspace.budget_summary
     parts = []
     for warning in summary.warnings[:2]:

@@ -16,30 +16,32 @@ router = APIRouter(prefix="/api/events/{event_id}/scenarios", tags=["scenarios"]
 
 
 @router.post("", response_model=Scenario, status_code=201)
-def create_scenario(event_id: UUID, body: ScenarioCreate, request: Request, owner: Owner):
+def create_scenario(event_id: UUID, body: ScenarioCreate, request: Request, owner: Owner) -> Scenario:
     base = current(request, owner, event_id, body.revision)
     _, preview = simulate(base, body.parameters, uuid4(), datetime.now(UTC))
     return repository(request).create_scenario(owner, preview)
 
 
 @router.get("", response_model=list[Scenario])
-def list_scenarios(event_id: UUID, request: Request, owner: Owner):
+def list_scenarios(event_id: UUID, request: Request, owner: Owner) -> list[Scenario]:
     return repository(request).list_scenarios(owner, str(event_id))
 
 
 @router.get("/{scenario_id}", response_model=Scenario)
 @router.get("/{scenario_id}/compare", response_model=Scenario)
-def get_scenario(event_id: UUID, scenario_id: UUID, request: Request, owner: Owner):
+def get_scenario(event_id: UUID, scenario_id: UUID, request: Request, owner: Owner) -> Scenario:
     return repository(request).get_scenario(owner, str(event_id), str(scenario_id))
 
 
 @router.post("/{scenario_id}/discard", response_model=Scenario)
-def discard_scenario(event_id: UUID, scenario_id: UUID, request: Request, owner: Owner):
+def discard_scenario(event_id: UUID, scenario_id: UUID, request: Request, owner: Owner) -> Scenario:
     return repository(request).discard_scenario(owner, str(event_id), str(scenario_id))
 
 
 @router.post("/{scenario_id}/apply", response_model=EventWorkspace)
-def apply_scenario(event_id: UUID, scenario_id: UUID, body: ScenarioApply, request: Request, owner: Owner):
+def apply_scenario(
+    event_id: UUID, scenario_id: UUID, body: ScenarioApply, request: Request, owner: Owner
+) -> EventWorkspace:
     if not body.approved:
         raise HTTPException(status_code=422, detail="Explicit approval is required")
     repo = repository(request)
@@ -66,7 +68,9 @@ def apply_scenario(event_id: UUID, scenario_id: UUID, body: ScenarioApply, reque
 
 
 @router.post("/interpret", response_model=Interpretation)
-def interpret_scenario(event_id: UUID, body: InterpretRequest, request: Request, owner: Owner):
+def interpret_scenario(
+    event_id: UUID, body: InterpretRequest, request: Request, owner: Owner
+) -> Interpretation:
     from app.ai.workspace import interpret
 
     base = current(request, owner, event_id, body.revision)

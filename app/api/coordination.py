@@ -13,7 +13,9 @@ router = APIRouter(prefix="/api/events/{event_id}/vendors", tags=["vendors"])
 
 
 @router.patch("/{vendor_id}", response_model=EventWorkspace)
-def update_vendor(event_id: UUID, vendor_id: UUID, body: VendorUpdate, request: Request, owner: Owner):
+def update_vendor(
+    event_id: UUID, vendor_id: UUID, body: VendorUpdate, request: Request, owner: Owner
+) -> EventWorkspace:
     event = current(request, owner, event_id, body.revision)
     vendor = next((item for item in event.vendors if item.id == vendor_id), None)
     if vendor is None:

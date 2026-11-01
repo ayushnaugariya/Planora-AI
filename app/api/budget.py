@@ -16,6 +16,7 @@ from app.schemas.budget import (
     ExpenseDelete,
     ExpenseRecord,
     ExpenseUpdate,
+    ExpenseValues,
 )
 from app.schemas.workspaces import EventWorkspace
 from app.services.budget import calculate_budget, set_allocations, sync_budget
@@ -24,14 +25,14 @@ from app.services.workspaces import next_revision
 router = APIRouter(prefix="/api/events/{event_id}/budget", tags=["budget"])
 
 
-def find_expense(workspace, expense_id):
+def find_expense(workspace: EventWorkspace, expense_id: UUID) -> ExpenseRecord:
     for item in workspace.expenses:
         if item.id == expense_id and item.event_id == workspace.id:
             return item
     raise WorkspaceNotFound
 
 
-def validate_expense(workspace, values):
+def validate_expense(workspace: EventWorkspace, values: ExpenseValues) -> None:
     if values.currency != workspace.details.currency:
         raise HTTPException(
             status_code=422, detail="Expense currency must match the event; conversion is not supported"
@@ -42,34 +43,36 @@ def validate_expense(workspace, values):
         raise HTTPException(status_code=422, detail="Vendor does not belong to this event")
 
 
-def commit_budget(request, owner, workspace, revision, summary):
+def commit_budget(
+    request: Request, owner: str, workspace: EventWorkspace, revision: int, summary: str
+) -> EventWorkspace:
     sync_budget(workspace)
     next_revision(workspace, summary)
     return repository(request).save(owner, workspace, revision)
 
 
 @router.get("", response_model=BudgetSummary)
-def budget_summary(event_id: UUID, request: Request, owner: Owner):
+def budget_summary(event_id: UUID, request: Request, owner: Owner) -> BudgetSummary:
     return calculate_budget(repository(request).get(owner, str(event_id)))
 
 
 @router.get("/warnings", response_model=list[BudgetWarning])
-def budget_warnings(event_id: UUID, request: Request, owner: Owner):
+def budget_warnings(event_id: UUID, request: Request, owner: Owner) -> list[BudgetWarning]:
     return budget_summary(event_id, request, owner).warnings
 
 
 @router.get("/expenses", response_model=list[ExpenseRecord])
-def list_expenses(event_id: UUID, request: Request, owner: Owner):
+def list_expenses(event_id: UUID, request: Request, owner: Owner) -> list[ExpenseRecord]:
     return repository(request).get(owner, str(event_id)).expenses
 
 
 @router.get("/expenses/{expense_id}", response_model=ExpenseRecord)
-def get_expense(event_id: UUID, expense_id: UUID, request: Request, owner: Owner):
+def get_expense(event_id: UUID, expense_id: UUID, request: Request, owner: Owner) -> ExpenseRecord:
     return find_expense(repository(request).get(owner, str(event_id)), expense_id)
 
 
 @router.post("/expenses", response_model=EventWorkspace, status_code=201)
-def add_expense(event_id: UUID, body: ExpenseCreate, request: Request, owner: Owner):
+def add_expense(event_id: UUID, body: ExpenseCreate, request: Request, owner: Owner) -> EventWorkspace:
     workspace = repository(request).get(owner, str(event_id))
     fingerprint = hashlib.sha256(body.expense.model_dump_json().encode()).hexdigest()
     existing = next((item for item in workspace.expenses if item.id == body.request_id), None)
@@ -96,7 +99,9 @@ def add_expense(event_id: UUID, body: ExpenseCreate, request: Request, owner: Ow
 
 
 @router.put("/expenses/{expense_id}", response_model=EventWorkspace)
-def edit_expense(event_id: UUID, expense_id: UUID, body: ExpenseUpdate, request: Request, owner: Owner):
+def edit_expense(
+    event_id: UUID, expense_id: UUID, body: ExpenseUpdate, request: Request, owner: Owner
+) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     old = find_expense(workspace, expense_id)
     validate_expense(workspace, body.expense)
@@ -131,7 +136,9 @@ def edit_expense(event_id: UUID, expense_id: UUID, body: ExpenseUpdate, request:
 
 
 @router.delete("/expenses/{expense_id}", response_model=EventWorkspace)
-def delete_expense(event_id: UUID, expense_id: UUID, body: ExpenseDelete, request: Request, owner: Owner):
+def delete_expense(
+    event_id: UUID, expense_id: UUID, body: ExpenseDelete, request: Request, owner: Owner
+) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     old = find_expense(workspace, expense_id)
     if body.confirm_id != expense_id:
@@ -147,7 +154,9 @@ def delete_expense(event_id: UUID, expense_id: UUID, body: ExpenseDelete, reques
 
 
 @router.patch("/allocations", response_model=EventWorkspace)
-def update_allocations(event_id: UUID, body: AllocationUpdate, request: Request, owner: Owner):
+def update_allocations(
+    event_id: UUID, body: AllocationUpdate, request: Request, owner: Owner
+) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     original = {line.key: line.amount for line in workspace.plan.budget_lines}
     set_allocations(workspace, body.allocations)

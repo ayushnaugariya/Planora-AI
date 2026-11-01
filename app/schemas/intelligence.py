@@ -17,7 +17,7 @@ class DecisionRequest(BudgetInput):
 
     @field_validator("question", mode="before")
     @classmethod
-    def _clean(cls, value):
+    def _clean(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 
@@ -56,14 +56,14 @@ class QuoteRequest(BudgetInput):
 
     @field_validator("filename")
     @classmethod
-    def _filename(cls, value):
+    def _filename(cls, value: str) -> str:
         if ".." in value:
             raise ValueError("Choose a simple text filename")
         return value
 
     @field_validator("text")
     @classmethod
-    def _text(cls, value):
+    def _text(cls, value: str) -> str:
         if len(value.encode("utf-8")) > 10000 or "\x00" in value or value.startswith(("%PDF", "PK\x03")):
             raise ValueError("Only bounded UTF-8 plain text quotations are supported")
         if len(value.splitlines()) > 80 or any(len(line) > 400 for line in value.splitlines()):
@@ -126,7 +126,7 @@ class DesignRequest(BudgetInput):
 
     @field_validator("brief", mode="before")
     @classmethod
-    def _brief(cls, value):
+    def _brief(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 

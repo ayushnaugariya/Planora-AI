@@ -9,13 +9,39 @@ export function mountCopilot({api,applyWorkspace,setWorkspaceBusy,workspaceStatu
     clear(context);
     if(state.workspace){
       const event=state.workspace,summary=event.budget_summary;
-      context.append(h('div',{},h('span',{class:'eyebrow',text:'SAVED FACTS / GENERATED GUIDANCE'}),h('h3',{text:'A second opinion, grounded in your plan.'}),h('p',{text:`${event.details.guest_count} guests · ${financialMoney(summary.projected_cost)} projected recorded cost. ${summary.missing_categories.length||summary.unknown_expenses.length?'Pricing is incomplete.':'Prices are recorded assumptions, not verified market data.'}`})),h('span',{class:'badge',text:'ADVICE NEVER APPLIES CHANGES'}));
+      context.append(
+        h(
+          'div',
+          {},
+          h('span',{class:'eyebrow',text:'SAVED FACTS / GENERATED GUIDANCE'}),
+          h('h3',{text:'A second opinion, grounded in your plan.'}),
+          h(
+            'p',
+            {
+              text:`${event.details.guest_count} guests · ${financialMoney(summary.projected_cost)} projected recorded cost. ${summary.missing_categories.length||summary.unknown_expenses.length?'Pricing is incomplete.':'Prices are recorded assumptions, not verified market data.'}`
+            }
+          )
+        ),
+        h('span',{class:'badge',text:'ADVICE NEVER APPLIES CHANGES'})
+      );
     }
     const log = $("chat-log");
     clear(log);
-    log.append(h("div", { class: "msg ai", text: "Ask me anything about this plan, like where to save money, what to book first, or how to handle RSVPs." }));
-    if (state.workspace) for (const entry of state.workspace.chat) log.append(h("div", { class: entry.role === "user" ? "msg me" : "msg ai" }, entry.text,
-      entry.role === "assistant" ? h("small", { class: "chat-source", text: entry.source === "gemini" ? "Gemini" : "Built-in planner" }) : null));
+    log.append(
+      h(
+        "div",
+        {
+          class: "msg ai",
+          text: "Ask me anything about this plan, like where to save money, what to book first, or how to handle RSVPs."
+        }
+      )
+    );
+    if (state.workspace) for (const entry of state.workspace.chat) log.append(h("div",
+    { class: entry.role === "user" ? "msg me" : "msg ai" },
+    entry.text,
+      entry.role === "assistant" ? h(
+        "small", { class: "chat-source", text: entry.source === "gemini" ? "Gemini" : "Built-in planner" }
+      ) : null));
     $("chat-error").hidden = true;
   }
 
@@ -32,7 +58,9 @@ export function mountCopilot({api,applyWorkspace,setWorkspaceBusy,workspaceStatu
     btn.textContent = "Thinking...";
     setWorkspaceBusy(true);
     try {
-      const res = await api(`/api/events/${state.workspace.id}/chat`, { question: q, revision: state.workspace.revision });
+      const res = await api(
+        `/api/events/${state.workspace.id}/chat`, { question: q, revision: state.workspace.revision }
+      );
       applyWorkspace(await res.json(), true, true);
       input.value = "";
       workspaceStatus("Conversation saved.");

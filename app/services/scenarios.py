@@ -1,8 +1,8 @@
 """Isolated deterministic simulations. This module never writes or calls Gemini."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
-from uuid import uuid5
+from uuid import UUID, uuid5
 
 from fastapi import HTTPException
 
@@ -15,20 +15,22 @@ from app.schemas.scenarios import (
     ExpenseChange,
     GuestChange,
     Scenario,
+    ScenarioParameters,
     TaskImpact,
     VendorCancellation,
 )
+from app.schemas.workspaces import EventWorkspace
 from app.services import engine
 from app.services.budget import calculate_budget, set_allocations, sync_budget
 from app.services.workspaces import reconcile
 
 
-def dependency_reasons(workspace):
+def dependency_reasons(workspace: EventWorkspace) -> list[str]:
     tasks = {task.id: task for task in workspace.tasks}
     reasons = []
     visited, visiting = set(), set()
 
-    def visit(task_id):
+    def visit(task_id: UUID) -> None:
         if task_id in visiting:
             reasons.append("Task dependencies contain a cycle.")
             return
@@ -59,7 +61,7 @@ def dependency_reasons(workspace):
     return list(dict.fromkeys(reasons))
 
 
-def values(workspace):
+def values(workspace: EventWorkspace) -> dict[str, object]:
     return {
         "budget": workspace.details.budget,
         "guest_count": workspace.details.guest_count,
@@ -69,7 +71,13 @@ def values(workspace):
     }
 
 
-def simulate(base, parameters, scenario_id, created_at, today=None):
+def simulate(
+    base: EventWorkspace,
+    parameters: ScenarioParameters,
+    scenario_id: UUID,
+    created_at: datetime,
+    today: date | None = None,
+) -> tuple[EventWorkspace, Scenario]:
     today = today or date.today()
     proposed = base.model_copy(deep=True)
     reasons = dependency_reasons(base)
@@ -77,7 +85,7 @@ def simulate(base, parameters, scenario_id, created_at, today=None):
     warnings = []
     affected_categories = set()
 
-    def new_expense(category, description, amount, suffix):
+    def new_expense(category: str, description: str, amount: Decimal | None, suffix: str) -> ExpenseRecord:
         if category not in {line.key for line in proposed.plan.budget_lines}:
             raise HTTPException(status_code=422, detail="Scenario category does not belong to this event")
         expense = ExpenseRecord(

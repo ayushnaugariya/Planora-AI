@@ -15,7 +15,7 @@ import json
 import logging
 import os
 import re
-from typing import Protocol
+from typing import NoReturn, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -57,7 +57,7 @@ MAX_MODEL_TEXT = 16_000
 MAX_PROMPT_TEXT = 128_000
 
 
-def safe_json(value) -> str:
+def safe_json(value: object) -> str:
     """Lossless JSON data encoding; user strings cannot create literal block tags."""
     return (
         json.dumps(value, ensure_ascii=True, allow_nan=False)
@@ -72,7 +72,7 @@ def sanitize(text: str, limit: int = 300) -> str:
     return text[:limit].strip()
 
 
-def _echoes(value, protected: tuple[str, ...]) -> bool:
+def _echoes(value: object, protected: tuple[str, ...]) -> bool:
     if isinstance(value, str):
         return any(item in value for item in protected)
     if isinstance(value, dict):
@@ -82,7 +82,7 @@ def _echoes(value, protected: tuple[str, ...]) -> bool:
     return False
 
 
-def model_response(client, prompt: str, system: str, json_mode: bool) -> str:
+def model_response(client: LLM, prompt: str, system: str, json_mode: bool) -> str:
     """Bound calls/output and reject exact prompt/credential echoes, not semantics.
 
     Callers supply only server-authored system instructions; exceptions and raw
@@ -188,7 +188,7 @@ def _plan_prompt(req: PlanRequest, core: Core) -> str:
     )
 
 
-def _unique_object(pairs):
+def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     result = {}
     for key, value in pairs:
         if key in result:
@@ -197,7 +197,7 @@ def _unique_object(pairs):
     return result
 
 
-def _invalid_constant(_):
+def _invalid_constant(_: str) -> NoReturn:
     raise ValueError("Non-finite AI response number")
 
 

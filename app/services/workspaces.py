@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from fastapi import HTTPException
 
+from app.schemas.planning import Plan
 from app.schemas.workspaces import (
     ChecklistState,
     EventWorkspace,
@@ -14,7 +15,7 @@ from app.schemas.workspaces import (
 )
 
 
-def reconcile(workspace: EventWorkspace | None, plan):
+def reconcile(workspace: EventWorkspace | None, plan: Plan) -> tuple[list[TaskState], list[VendorState]]:
     """Keep child identity/status by semantic template key, never by position alone."""
     old_tasks = {}
     old_vendors = {}

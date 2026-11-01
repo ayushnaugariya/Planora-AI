@@ -7,7 +7,8 @@ from decimal import Decimal
 from pydantic import TypeAdapter, ValidationError
 
 from app.schemas.budget import ExpenseRecord, Money, Quantity
-from app.schemas.intelligence import PaymentMilestone, QuoteAnalysis, QuoteLine
+from app.schemas.intelligence import PaymentMilestone, QuoteAnalysis, QuoteImport, QuoteLine, QuoteRequest
+from app.schemas.workspaces import EventWorkspace
 
 MONEY, QUANTITY = TypeAdapter(Money), TypeAdapter(Quantity)
 FIELDS = {
@@ -27,7 +28,7 @@ FIELDS = {
 }
 
 
-def analyze_quote(base, body):
+def analyze_quote(base: EventWorkspace, body: QuoteRequest | QuoteImport) -> QuoteAnalysis:
     issues, values, evidence, items, payments = [], {}, {}, [], []
     for number, line in enumerate(body.text.splitlines(), 1):
         if not line.strip():

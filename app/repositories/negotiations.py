@@ -1,21 +1,27 @@
 """One explicitly saved, versioned user-reviewed message per owned event/vendor."""
 
+import sqlite3
 from datetime import UTC, datetime
+from uuid import UUID
 
 from fastapi import HTTPException
 
 from app.core.errors import RevisionConflict, UnsupportedSchema
-from app.schemas.negotiation import NegotiationDraft
+from app.repositories.workspaces import WorkspaceRepository
+from app.schemas.negotiation import DraftSave, NegotiationDraft
+from app.schemas.workspaces import EventWorkspace
 from app.services.negotiation import vendor_for
 
 
-def _table(connection):
+def _table(connection: sqlite3.Connection) -> tuple[int] | None:
     return connection.execute(
         "SELECT 1 FROM sqlite_master WHERE type='table' AND name='negotiation_drafts'"
     ).fetchone()
 
 
-def _read(connection, owner, event, vendor_id):
+def _read(
+    connection: sqlite3.Connection, owner: str, event: EventWorkspace, vendor_id: UUID
+) -> NegotiationDraft | None:
     if not _table(connection):
         return None
     row = connection.execute(
@@ -40,7 +46,7 @@ def _read(connection, owner, event, vendor_id):
     return draft
 
 
-def read(repo, owner, event_id, vendor_id):
+def read(repo: WorkspaceRepository, owner: str, event_id: UUID, vendor_id: UUID) -> NegotiationDraft | None:
     with repo._connection() as connection:
         connection.execute("BEGIN")
         event = repo._read(connection, owner, str(event_id))
@@ -48,7 +54,9 @@ def read(repo, owner, event_id, vendor_id):
         return _read(connection, owner, event, vendor_id)
 
 
-def save(repo, owner, event_id, vendor_id, body):
+def save(
+    repo: WorkspaceRepository, owner: str, event_id: UUID, vendor_id: UUID, body: DraftSave
+) -> NegotiationDraft:
     if not body.approved:
         raise HTTPException(status_code=422, detail="Explicitly save the reviewed draft; this never sends it")
     with repo._connection() as connection:

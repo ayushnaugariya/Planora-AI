@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from app.db.migrations import migrate
 
 
 class SQLiteStore:
-    def __init__(self, path: str | Path, *, enabled: bool = True):
+    def __init__(self, path: str | Path, *, enabled: bool = True) -> None:
         self.path = Path(path)
         self.enabled = enabled
         self._initialized = False
@@ -31,7 +32,7 @@ class SQLiteStore:
             self._initialized = True
 
     @contextmanager
-    def _connection(self):
+    def _connection(self) -> Iterator[sqlite3.Connection]:
         try:
             self.initialize()
             with closing(sqlite3.connect(self.path, timeout=5)) as connection, connection:

@@ -1,187 +1,213 @@
 # Planora AI
 
-A GenAI-powered Celebration & Event Planner for weddings, birthdays and community events. Planora builds budgets, dated timelines, vendor checklists and personalized ideas, then keeps the event in an editable workspace with grounded decision support.
+**A GenAI-powered Celebration & Event Planner for weddings, birthdays and community events.** Planora turns a few details about an occasion into a saved, editable plan with an exact-cent budget, a dated timeline, vendor checklists and personalized ideas. The plan then follows the event from guest list to event day.
 
-**Numbers and approvals belong to the server.** Gemini provides optional narrative or validated suggestions; it cannot change authoritative money, bypass ownership, or apply a scenario. A deterministic offline planner remains available without credentials.
+> Numbers and approvals belong to the server. Gemini adds optional narrative and validated suggestions. It can never change authoritative money, bypass ownership or apply a change without explicit user approval. Without an API key, a deterministic offline planner provides the full workflow.
 
-The homepage now includes a separate **Planora Event Portal** after the workflow introduction: real WebGL2 metal/glass geometry, a scroll-driven camera passage and an assembling architectural universe. The original floral hero and invitation remain untouched. The portal loads near its section, pauses independently and uses static artwork for reduced motion, data saving, short screens or unavailable WebGL. No frontend dependency or build step was added. Open `http://127.0.0.1:8000/#event-portal` locally; [implementation and validation](docs/EVENT_PORTAL.md).
+## 1. Problem statement
 
-## Problem and solution
+The Challenge 5 statement supplied by the project owner:
 
-The supplied Challenge 5 statement is: ?Create a GenAI-powered planning assistant that helps users organize weddings, birthdays, and community events with budgets, timelines, vendor checklists, and personalized ideas.? Planora connects these capabilities in one saved workspace. The statement was supplied by the project owner; independent competition publication, public submission eligibility and any participant-count/ranking claims have not been verified.
+> *"Create a GenAI-powered planning assistant that helps users organize weddings, birthdays, and community events with budgets, timelines, vendor checklists, and personalized ideas."*
 
-## Event Website & Invitation Generator
+**The problem.** People planning a celebration juggle a budget, a schedule, suppliers, guests and ideas across spreadsheets, chats and notes. Generic AI chat gives fluent advice but no saved plan, and its arithmetic can be wrong. Basic planner apps store lists but don't connect a vendor cancellation or a guest-count change back to the budget and the timeline.
 
-Open a saved event and choose **Event Website**. Customize Ethereal, Modern Minimal, Celebration or Editorial Luxe, save a private draft, preview the actual design, then explicitly approve publication. Stable unlisted `/e/<random-slug>` links expose only the approved public snapshot. Updates require another approval; unpublish revokes access. Optional public RSVPs enter the existing Guest Manager as unverified responses, without changing budgets or overwriting prior guests.
+**How Planora solves it.** Every event lives in one persistent workspace. A deterministic engine computes the budget, timeline and vendor checklist, so the numbers are always reproducible. AI adds personalization and explanation on top of that verified core. Every change that affects money or the plan is first shown as an isolated preview and applied only after explicit approval.
 
-Gemini can select bounded invitation-copy variants; server-composed wording and the full publishing workflow work without credentials or after provider failures. Host/venue/schedule/dress/gallery/RSVP visibility starts off. Covers/gallery use bundled illustrations; arbitrary URLs and personal photo uploads are not supported. Public pages require JavaScript. No new dependency or environment variable is required. [Full behavior, nine endpoints, storage, changed files, verification and deployment limits](docs/EVENT_WEBSITES.md).
+### Requirement → feature → evidence
 
-## Event Day Command Center
+| Problem-statement requirement | Planora AI feature | Implementation evidence |
+| --- | --- | --- |
+| GenAI-powered planning assistant | Gemini narrative, natural-language intake, grounded Q&A, decision/design/readiness suggestions, negotiation and invitation copy, with an offline fallback for each | [app/ai/](app/ai/) (`gemini.py`, `intake.py`, `workspace.py`, `negotiation.py`, `website_copy.py`, `command_center.py`); [tests/security/test_ai_boundaries.py](tests/security/test_ai_boundaries.py) |
+| Weddings, birthdays and community events | Event types `wedding`, `birthday`, `community` (plus anniversary and baby shower); a five-step wizard and reviewed free-text intake | [app/schemas/planning.py](app/schemas/planning.py) (`EventType`); [app/services/engine.py](app/services/engine.py); [frontend/modules/wizard.js](frontend/modules/wizard.js) |
+| Budgets | Category allocation (largest-remainder), Budget Guardian expense ledger with exact-cent Decimal/HALF_UP accounting, scenario and rescue previews | [app/services/budget.py](app/services/budget.py), [app/services/scenarios.py](app/services/scenarios.py); [docs/BUDGET_RULES.md](docs/BUDGET_RULES.md); [tests/integration/test_budget.py](tests/integration/test_budget.py) |
+| Timelines | Dated milestones and checklists, calendar/print export, delay analysis and the Event Day Command Center | `build_timeline` in [engine.py](app/services/engine.py); [app/services/timeline_intelligence.py](app/services/timeline_intelligence.py), [app/services/command_center.py](app/services/command_center.py) |
+| Vendor checklists | Vendor checklist generated per category, vendor records and arrivals, Quote Analyzer, Negotiation Assistant | `build_vendors` in [engine.py](app/services/engine.py); [app/services/quote_analysis.py](app/services/quote_analysis.py), [app/services/negotiation.py](app/services/negotiation.py) |
+| Personalized ideas | Event-type ideas tailored to guests, formality and budget; optional Gemini narrative; Design Studio mood boards; invitation website themes | `ideas` in [engine.py](app/services/engine.py); [app/services/design.py](app/services/design.py); [app/services/websites.py](app/services/websites.py) |
 
-Open a saved event and select **Event Day** to manage timeline status, responsible people, custom operations, expected times, vendor arrivals and incidents. Activity persists across restarts; original milestone dates and budgets remain intact. Readiness is calculated from recorded checks, with its formula shown. All operational writes need explicit approval. The grounded copilot is read-only, and recovery options still use Event Rescue's existing preview/approval workflow.
+**Beyond the statement**, Planora adds features that keep the plan useful after day one: a Guest List & RSVP Manager, Scenario Studio and Event Rescue (what-if previews with approval), Event Readiness checks, and an approved public invitation website with RSVP.
 
-Install the updated `requirements.txt` and restart FastAPI for the new routes. `tzdata` supplies the IANA timezone data missing on Windows; no extra secret is required. Set the event timezone explicitly or the dashboard discloses its server-local calendar-day assumption. This is 30-second polling, not external live monitoring. [Complete behavior, four endpoints, additive storage, files, validation and limitations](docs/EVENT_DAY_COMMAND_CENTER.md).
+## 2. Key features
 
-## Guest roster and vendor negotiation
-
-Saved events now have a private Guest List & RSVP Manager (500 primary guest records per event), including search/groups, manual party responses, plus-ones, requirements and immediate counts. Confirmed attendance can be reviewed through the existing guest-count scenario; it never silently changes the planning budget. Vendors now have a quote-grounded Negotiation Assistant with seven scenarios, optional Gemini-selected tactics/tone, editable/copyable messages and one explicitly saved, versioned draft per vendor. Quote Analyzer results can be reused directly. **No invitation or vendor communication is sent.**
-
-No additional dependency or login is required. Two optional child tables are created transactionally on first save; the database path and workspace schema 2 remain unchanged. [Behavior, counting rules, endpoints, migrations, exact verification and limitations](docs/GUESTS_NEGOTIATION.md).
-
-## Implemented features
-
-| Capability | Actual behavior |
+| Feature | What it does |
 | --- | --- |
-| Event Website & Invitation Generator | Four deterministic themes, private drafts, actual preview, approved public snapshot, stable shareable link, update/unpublish/republish and create-only public RSVP in Guest Manager. Local artwork and print layout; no arbitrary AI code. |
-| Event Day Command Center | Saved task statuses/owners/expected times, custom operations, vendor arrivals, incidents, activity history, transparent readiness and read-only grounded copilot. Incident recovery reuses Event Rescue preview/approval. |
-| Event creation | Five-step wizard and reviewed natural-language intake; supported event types include weddings, birthdays, community events, anniversaries and baby showers. |
-| Guest List & RSVP Manager | Owned guest CRUD, five groups, four manual party RSVP states, plus-ones, requirements, search/filter and confirmed/possible attendance totals. Planning headcount changes still require review. |
-| Vendor Negotiation Assistant | Seven quote-based request types, constrained Gemini strategy or deterministic fallback, editable/copyable text and private versioned draft save/reopen. No sending or automatic budget write. |
-| Persistent workspaces | SQLite event details, plans, progress, vendor records, expense ledger, chat, history and isolated previews. Reopen by browser cookie and event URL. |
-| Budget Guardian | Editable expenses and category allowances; exact-cent estimates, quotes, commitments and cumulative paid amounts; missing-price and exposure warnings. |
-| Scenario Studio / Digital Twin | Six isolated types: budget reduction, guest count, date, supplier cancellation, venue/catering cost and additional function. Compare, discard, or explicitly approve a feasible current preview. |
-| Event Rescue | Grounded recovery options reuse the same scenario calculations and atomic approval path. Unresolved prices, confirmations or liabilities stay indeterminate. |
-| Decision Engine | Evidence-backed recommendations, uncertainty and optional isolated proposals. No automatic write or invented savings. |
-| Quote Analyzer | Bounded labeled UTF-8 `.txt`/paste, exact reconciliation, source evidence, terms and up to three source comparisons. Explicitly reviewed quote/commitment recording; a deposit quote is not money paid. No PDF/OCR or universal contract parser. |
-| Design Studio | Three local CSS mood-board recipes, editable brief/palette, actual saved allowance links and a reopenable preferred concept. Optional Gemini orders allowed styles; these are not photos or priced vendor offerings. |
-| Timeline intelligence | Original dated milestones/checklists, calendar/print export and read-only day-based delay analysis remain. Event Day adds explicit user-entered times/owners/dependencies without inventing durations or moving the original schedule. |
-| Event Readiness Intelligence | Five dimensions, fourteen pass/attention/unknown evidence checks and three next actions linked to existing workflows. A check count is not a readiness score or a fully-ready certificate. |
-| Frontend | Responsive vanilla HTML/CSS/ES modules, cinematic CSS 3D/scroll sequence, keyboard controls, shared motion pause and static reduced-motion fallbacks. No npm install or asset build. |
+| **Event creation** | Five-step wizard or reviewed natural-language intake. |
+| **Budget Guardian** | Editable expenses and category allowances; estimates, quotes, commitments and payments tracked to the cent; missing-price and exposure warnings. |
+| **Timeline & checklists** | Dated milestones, planning and vendor checklists, calendar (.ics) and print export, read-only delay analysis. |
+| **Guest List & RSVP Manager** | Up to 500 guests per event, groups, four RSVP states, plus-ones, dietary and accessibility notes, search, live totals. |
+| **Vendor Negotiation Assistant** | Seven quote-grounded request types, editable and copyable messages, saved versioned drafts. Nothing is sent automatically. |
+| **Quote Analyzer** | Labelled text quotes reconciled exactly, with source evidence and up to three comparisons. |
+| **Scenario Studio & Event Rescue** | Six isolated what-if types (budget cut, guest count, date, supplier cancellation, cost change, extra function). Compare, discard or approve. |
+| **Event Readiness** | Fourteen pass / attention / unknown evidence checks across five dimensions, with three linked next actions. |
+| **Event Day Command Center** | Task status and owners, vendor arrivals, incidents, activity history, transparent readiness, read-only grounded copilot. |
+| **Event Website & Invitation** | Four themes, private draft, real preview, explicit publish approval, unlisted `/e/<slug>` link, update/unpublish, optional public RSVP into the guest list. |
+| **Design Studio** | Mood-board recipes, editable palette, a saved preferred concept. |
+| **Cinematic landing page** | CSS 3D / WebGL2 scroll sequence with static fallbacks for reduced motion, data saving and unsupported devices. |
 
-The homepage illustration is **fictional and read-only**. **Try the full saved demo** requires acknowledgment and creates a separate fictional workspace through normal owned APIs. Demo prices and supplier confirmations are assumptions, not verified market data. Other events are not reset.
+## 3. How it works
 
-## Quick start
+1. **Describe the occasion.** Use the wizard or plain language ("a 120-guest wedding in Jaipur in March, ₹15 lakh"). Planora shows the extracted fields for review before anything is saved.
+2. **Get a verified plan.** The deterministic engine builds the budget, timeline, vendor checklist and ideas. If Gemini is configured, it adds narrative and personalized suggestions, validated against strict schemas.
+3. **Manage the event.** Record real expenses and quotes, manage guests, draft vendor negotiations and design the invitation.
+4. **Ask "what if?"** Scenarios and Rescue options are computed as isolated previews. Nothing changes until you approve a feasible, current proposal.
+5. **Run the day.** The Command Center tracks tasks, arrivals and incidents. The published invitation collects RSVPs.
 
-Python **3.11+** is declared by the project. Local verification uses **CPython 3.14.2** on Windows. Node is needed only for JavaScript/browser checks (tested **25.9.0**, with built-in fetch/WebSocket). Git is needed for the release audit. No Gemini key is required.
+Events are saved in SQLite and scoped to the browser through an anonymous HttpOnly owner cookie, so no signup is needed.
 
-### Windows PowerShell
+## 4. Architecture
 
-Run from the repository root; activation is unnecessary:
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI["Vanilla HTML/CSS/ES modules<br/>(frontend/)"]
+    PUB["Public invitation<br/>/e/&lt;slug&gt;"]
+  end
+  subgraph FastAPI["FastAPI app (app/main.py)"]
+    MW["Middleware: proxy trust, security headers/CSP,<br/>origin check, body cap, rate limit, gzip"]
+    API["Routes (app/api)<br/>owner dependency + revision checks"]
+    SVC["Deterministic services (app/services)<br/>budget, scenarios, timeline, readiness, websites"]
+    AI["AI layer (app/ai)<br/>prompts, strict parsing, offline fallback"]
+    REPO["Repositories (app/repositories)<br/>owner-scoped, CAS transactions"]
+  end
+  DB[("SQLite<br/>data/eventra.sqlite3")]
+  GEM["Google Gemini<br/>(optional)"]
+  UI --> MW
+  PUB --> MW
+  MW --> API --> SVC
+  SVC --> AI -. "optional" .-> GEM
+  API --> REPO --> DB
+```
+
+```text
+app/
+  main.py          ASGI entry point, middleware and router composition
+  api/             HTTP routes, ownership/revision dependencies, error handlers
+  core/            configuration, body limits, proxy trust, rate limits, TTL cache
+  schemas/         Pydantic request/response and domain models
+  services/        deterministic planning, exact budget, scenarios, Rescue, readiness
+  ai/              Gemini transport and prompts, strict output parsing, offline paths
+  db/              SQLite connections and migrations
+  repositories/    owner-scoped persistence, compare-and-swap transactions
+frontend/          index.html, app.js, modules/, styles/, assets/ (no build step)
+tests/             unit/, integration/, security/, browser/, fixtures/
+scripts/           structure/contract checks, offline AI evaluations, release audit
+docs/              specifications, audits and demo guides (see docs/README.md)
+```
+
+**Technology stack:** Python 3.11+, FastAPI, Pydantic v2, Uvicorn, SQLite (standard library), optional `google-genai` (Gemini 2.5 Flash by default), vanilla JavaScript ES modules and CSS. There is no frontend framework, npm dependency or bundler.
+
+## 5. The role of AI
+
+| Used for | Not used for |
+| --- | --- |
+| Personalized narrative and ideas on top of the computed plan | Any budget, allocation or exact-cent calculation |
+| Extracting event details from free text, which the user then reviews | Applying scenarios, approvals or publication |
+| Grounded answers about the saved plan | Ownership, authorization or revision checks |
+| Ordering validated decision, design and readiness actions | Inventing prices, savings or supplier confirmations |
+| Negotiation tactics and tone, invitation copy variants | Sending messages or invitations |
+
+Safeguards: user data and system instructions are sent in separate roles; context and output are size-bounded; responses must match strict server-defined schemas and allowed action IDs; prompt and key echoes are rejected; repeated requests are served from a TTL cache; any failure falls back to deterministic output. Imported quote text and the guest roster are never sent to the provider. These controls reduce, but do not eliminate, prompt-injection and narrative-accuracy risk.
+
+## 6. Setup and running
+
+Requirements: Python **3.11+** (verified locally on CPython 3.14.2, Windows). Node.js is only needed for the JavaScript and browser checks. A Gemini key is optional.
+
+**Windows PowerShell**
 
 ```powershell
 py -3 -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements-dev.txt ruff pytest-cov
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python -m uvicorn app.main:app --reload --no-proxy-headers
 ```
 
-For the exact recorded Windows/Python 3.14.2 dependency snapshot, install `-r requirements-ci.txt` instead. It pins the already-tested runtime and validation packages; it is not a universal Linux/macOS lockfile. The normal runtime/development manifests retain their existing version ranges.
-
-### Standard Python / POSIX shell
+**macOS / Linux**
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -r requirements-dev.txt ruff pytest-cov
+python -m pip install -r requirements-dev.txt
 python -m uvicorn app.main:app --reload --no-proxy-headers
 ```
 
-Open **http://127.0.0.1:8000/**. Health: `/healthz`; API documentation: `/api/docs`; OpenAPI: `/api/openapi.json`. The application entry point remains `app.main:app`. Frontend files are served by FastAPI at `/` and `/static/*`.
+Open **http://127.0.0.1:8000/**. Health: `/healthz`. API docs: `/api/docs`. OpenAPI: `/api/openapi.json`. Use `requirements.txt` for runtime only. [requirements-ci.txt](requirements-ci.txt) pins the exact Windows/Python 3.14.2 snapshot used by CI.
 
-## Configuration and persistence
+### Environment variables
 
-`.env.example` contains safe defaults and empty credentials. The app reads environment variables; it **does not automatically load `.env`**. Export them, or copy the template to the ignored `.env` and explicitly launch with `--env-file .env`. Never commit a real key.
+The app reads process environment variables and does **not** auto-load `.env`. Copy [.env.example](.env.example) to the git-ignored `.env` and launch with `--env-file .env`, or export the variables in your shell. Never commit a real key.
 
-```powershell
-# Optional: use a local secret source rather than committing a key.
-# $env:GEMINI_API_KEY = <your privately supplied credential>
-$env:GEMINI_MODEL = 'gemini-2.5-flash'
-.\.venv\Scripts\python -m uvicorn app.main:app --reload --no-proxy-headers
-```
-
-| Variable | Default / behavior |
+| Variable | Default and behavior |
 | --- | --- |
-| `GEMINI_API_KEY` | Optional; blank means offline. `GOOGLE_API_KEY` is the existing alias; use one credential. |
-| `GEMINI_MODEL` / `GEMINI_TIMEOUT_MS` | `gemini-2.5-flash` / `20000`; existing provider model/timeout. |
-| `EVENTRA_DB_PATH` | `<project>/data/eventra.sqlite3`. An explicitly relative path is relative to the process working directory; use an absolute durable path in deployment. |
-| `RATE_LIMIT` / `RATE_WINDOW` / `RATE_MAX_CLIENTS` | `30` / `60` seconds / `10000`. Positive bounded settings; limit ? clients must not exceed 1,000,000. |
-| `TRUSTED_PROXY_CIDRS` | Empty: socket-peer identity only. Explicit trusted IPs/canonical CIDRs only; no wildcard trust. Always retain `--no-proxy-headers`. |
-| `LOG_LEVEL` | `INFO`; provider failures log exception classes, not raw credentials/output. |
-| `K_SERVICE` / `PORT` | Cloud Run platform guard / Docker startup port (8080). When `K_SERVICE` is present, SQLite workspace APIs fail closed. Do not unset it to claim durable Cloud Run workspaces. |
+| `GEMINI_API_KEY` (alias `GOOGLE_API_KEY`) | Empty means deterministic offline mode. Set only one. |
+| `GEMINI_MODEL` / `GEMINI_TIMEOUT_MS` | `gemini-2.5-flash` / `20000` |
+| `EVENTRA_DB_PATH` | `<project>/data/eventra.sqlite3`. Use an absolute durable path when deployed. |
+| `RATE_LIMIT` / `RATE_WINDOW` / `RATE_MAX_CLIENTS` | `30` requests / `60` s / `10000` clients. `RATE_LIMIT × RATE_MAX_CLIENTS` must be ≤ 1,000,000. |
+| `TRUSTED_PROXY_CIDRS` | Empty means only the socket peer is trusted. Explicit IPs/CIDRs only; keep `--no-proxy-headers`. |
+| `LOG_LEVEL` | `INFO`. Provider failures log exception classes, never credentials or raw output. |
+| `K_SERVICE` / `PORT` | When `K_SERVICE` is set (Cloud Run), saved-workspace APIs fail closed. `PORT` is used by the Docker command (default 8080). |
 
-Startup preserves the existing schema-2 workspace database and transactionally migrates supported v1 data. Preferred designs use an additive optional format-1 table. Readiness creates no table. Unsupported/malformed databases fail without destructive reset. **Never delete or replace the database to fix startup.** Back up using SQLite's backup API, or stop the application before copying it. Keep backups and browser profiles private.
+Startup preserves the existing database and migrates supported older data transactionally. It never resets a database. Back up with SQLite's backup API or stop the server before copying the file.
 
-An HttpOnly, SameSite=Strict cookie scopes saved events to this browser profile; only its one-way owner hash is stored. HTTPS uses Secure cookies. Clearing the cookie loses access: accounts, recovery and cross-device sharing are not implemented. Direct event links retain the original `#/event/<id>/<section>` routes. Persisted data survives server restarts only when the same database path and ownership cookie remain available.
-
-## Architecture and AI boundaries
-
-```text
-app/
-  main.py          ASGI entry point and middleware/router composition
-  api/             routes, ownership/revision dependencies, error handlers
-  core/            configuration, body limits, proxy trust, rate limits, cache
-  schemas/         existing domain and request/response validation
-  services/        planning, exact budget, scenarios, Rescue and intelligence
-  ai/              Gemini transport/prompts, strict parsing and offline paths
-  db/              SQLite connections and migrations
-  repositories/    owned persistence, CAS transactions and read snapshots
-frontend/          index.html, app.js, style.css, modules/, styles/, assets/
-tests/             unit/, integration/, security/, browser/, fixtures/
-scripts/           contract/import checks, offline evaluations, release audit
-docs/              accounting rules, implementation evidence and demo guides
-.github/workflows/ tested-environment CI recipe (hosted run unverified)
-data/              private runtime database; ignored, never part of the release
-```
-
-FastAPI/Pydantic and SQLite provide the backend; Google GenAI is optional. There is no frontend framework or npm dependency. Original whole-unit allocation behavior and Decimal/HALF_UP expense accounting remain intact. See [budget and scenario rules](docs/BUDGET_RULES.md).
-
-Gemini user data and fixed server instructions use separate roles/configuration. Context/output bounds, strict server-defined schemas, allowed actions and exact prompt/key-echo rejection constrain model responses; failures use deterministic fallback. Imported quote text does not reach the provider. Readiness AI may only order the same three validated action IDs within urgency tiers. These protections do **not** establish that prompt injection is completely solved or that all narrative is correct.
-
-AI cannot override saved-event ownership, revision/day checks, feasibility, approval or transactional application. An isolated preview is not an applied improvement. Paid/committed obligations survive cancellation; quoted deposits never become paid transactions. Actual quote sources and full incident descriptions are not a persistent document/incident vault.
-
-## Testing and evaluation
-
-Final integration audit (30 October 2026): **896 tests passed / 98.31% coverage**, two existing warnings, and **30 browser checkpoint groups passed**. Four reproduced integrity/reliability defects were repaired; original workflows, ownership, budgets and landing remain intact. Suitable for a supervised local demo; public deployment is conditional and production readiness remains unverified. [Findings, exact commands, limitations and deployment checklist](docs/FINAL_AUDIT.md).
-
-Website stage (30 October 2026): **889 passed / 98.31% coverage**, two existing warnings; **72 new feature cases**, **28 real-browser checkpoint groups**. Ruff/format, 51 authored JS checks plus vendor syntax, exact-cent/geometry, 30 offline evaluations, startup/restart, compilation and release checks passed locally. [Execution evidence and limitations](docs/EVENT_WEBSITES.md).
-
-Event Day stage (29 October 2026): **817 passed / 98.56% coverage**, two existing deprecation warnings; **42 new cases**, **27 real-browser checkpoint groups**, Ruff/format, JavaScript syntax, exact-cent checks and restart persistence verified locally. [Exact commands, file inventory, storage/clock rules and deployment limits](docs/EVENT_DAY_COMMAND_CENTER.md).
-
-Guest/negotiation stage (29 October 2026): fresh baseline **708 / 98.84%**; final Python **775 passed / 98.72%**, two existing warnings; **67 new feature cases** and **26 browser checkpoint groups passed**, zero runtime exceptions. Exact execution evidence are in [GUESTS_NEGOTIATION.md](docs/GUESTS_NEGOTIATION.md). Earlier audit/release counts below are dated historical snapshots.
-
-Current bug/security sweep (28 October 2026): **708 tests / 98.84% coverage**, two existing warnings, after a fresh 684-test baseline; **24 browser checkpoint groups** passed with no runtime exceptions. Five reproduced defects fixed, including calendar IDs/escaping, error headers, Escape navigation and the API docs CSP conflict. `/api/docs` now serves pinned Swagger assets locally under the unchanged strict CSP; license/provenance/update policy: [vendor notes](vendor/swagger-ui-5.34.0/README.md). Full findings, browser verification, exact commands, changed files and unsupported workflows: [BUG_SECURITY_AUDIT.md](docs/BUG_SECURITY_AUDIT.md).
-
-Release-preparation verification on **28 October 2026**: **682 tests passed, 98.78% combined statement/branch coverage**, two existing warnings; all **21 browser checkpoint groups** passed. The fresh pre-cleanup baseline was 670 / 98.78%; twelve release-audit regressions were added without changing original tests. Current release-preparation results and exact file/size evidence are in [GITHUB_RELEASE_AUDIT.md](docs/GITHUB_RELEASE_AUDIT.md); hosted CI and live Gemini are not claimed verified.
+## 7. Testing
 
 ```powershell
 .\.venv\Scripts\python -m pytest --cov --cov-report=term-missing --cov-fail-under=90
 .\.venv\Scripts\python -m ruff check app tests scripts
 .\.venv\Scripts\python -m ruff format --check app tests scripts
 .\.venv\Scripts\python -m scripts.check_structure
-Get-ChildItem frontend -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { throw 'JavaScript syntax failed' } }
-Get-ChildItem tests/browser -Filter *.mjs | ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { throw 'Browser syntax failed' } }
+.\.venv\Scripts\python -m scripts.evaluate_planning      # also: evaluate_intelligence, evaluate_readiness
 node tests/browser/test_money_display.mjs
-node tests/browser/test_decision_metrics.mjs
-.\.venv\Scripts\python -m scripts.evaluate_planning
-.\.venv\Scripts\python -m scripts.evaluate_intelligence
-.\.venv\Scripts\python -m scripts.evaluate_readiness
 node tests/browser/browser_workspace_smoke.mjs .venv/Scripts/python.exe
-.\.venv\Scripts\python -m scripts.audit_release
 ```
 
-The browser harness creates temporary databases/profiles and owns its Uvicorn process. It checks real UI workflows, approvals, other-event isolation, reduced motion, responsive layouts and browser/server restarts. It needs Edge at the default Windows path, or `EVENTRA_BROWSER_BINARY` / an explicit third argument for Chrome/Edge elsewhere. On POSIX, pass `.venv/bin/python` and the browser executable. Restricted environments may block browser debugging. No Gemini key is needed; evaluations measure offline constraints, not model accuracy.
+- The tests are deterministic and need **no Gemini key**. AI paths are exercised with injected fake clients, timeouts, malformed output and quota errors.
+- Each test uses temporary databases. The browser harness starts its own Uvicorn server with a temporary database and browser profile, and needs Edge or Chrome (set `EVENTRA_BROWSER_BINARY` or pass the path as a third argument).
+- Coverage is combined statement and branch coverage over `app/`, with a 90% floor enforced.
+- The suite covers unit, integration, security (ownership isolation, CSRF/origin, body limits, proxy spoofing, AI boundaries), public RSVP, publish and unpublish, exact-cent budgets, Event Day workflows and regressions for previously fixed defects.
 
-CI uses the pinned Windows/Python/Node validation snapshot, runs the full Python/JS/evaluation/browser checks and the release audit without API credentials. A workflow file is not evidence of a successful hosted run. Review [CONTRIBUTING.md](CONTRIBUTING.md) before changing behavior or tests.
+Current measured results are recorded in [docs/REPOSITORY_EVALUATION_READINESS.md](docs/REPOSITORY_EVALUATION_READINESS.md). The previous full audit is in [docs/FINAL_AUDIT.md](docs/FINAL_AUDIT.md).
 
-## Judge walkthrough
+## 8. Demo walkthrough (about 5 minutes, offline)
 
-1. Launch offline and use **Try the full saved demo**, acknowledging fictional data.
-2. In **Overview**, inspect Readiness evidence, unknowns and three action links.
-3. Review Guardian amounts; compare isolated alternatives in Scenario Studio or Event Rescue.
-4. Apply only after explicit approval of a feasible, current proposal; reopen/restart to confirm persistence.
-5. Explore bounded quote analysis, saved design concepts and recorded-link delay analysis.
+1. Start the server and open the landing page. Scroll the cinematic sequence, or turn on reduced motion to see the static fallback.
+2. Click **Try the full saved demo** and acknowledge that the data is fictional. A separate demo workspace is created.
+3. **Overview:** review the Readiness evidence, the unknowns and the three next actions.
+4. **Budget:** edit an expense and watch the exact-cent totals and warnings update.
+5. **Scenarios / Rescue:** preview a guest-count change or a supplier cancellation, compare it, then approve it. Reload to confirm it persisted.
+6. **Guests:** add guests and RSVPs. **Vendors:** generate and save a negotiation draft from a quote.
+7. **Event Website:** pick a theme, preview it, approve publication, then open the `/e/<slug>` link in a private window and submit an RSVP. It appears in the guest list. Unpublish to revoke the link.
+8. **Event Day:** update task statuses, log a vendor arrival and an incident.
 
-Detailed guides: [core demo](docs/JUDGE_DEMO.md), [intelligence workflows](docs/INTELLIGENCE_DEMO.md), [readiness approval/restart demo](docs/READINESS_DEMO.md). Historical implementation counts live in their dated reports rather than being current product claims.
+Further guides: [core demo](docs/JUDGE_DEMO.md), [intelligence workflows](docs/INTELLIGENCE_DEMO.md), [readiness demo](docs/READINESS_DEMO.md).
 
-## Deployment, security and release
+## 9. Security and privacy
 
-The complete saved product needs **one instance/worker with durable writable SQLite storage**, a stable external URL, TLS outside localhost and explicit trusted ingress. An ephemeral container or serverless filesystem does not provide workspace durability. Cloud Run currently disables saved-event operations; **Vercel is not configured or verified for this SQLite architecture**. Docker build/runtime and hosted deployment remain unverified here. See [deployment requirements](docs/DEPLOYMENT.md).
+- **Anonymous ownership:** a random 32-byte owner token sits in an HttpOnly, SameSite=Strict cookie (Secure over HTTPS). Only its one-way hash is stored. Every private route uses an owner dependency; an event UUID alone grants no access.
+- **Request protection:** same-origin checks on state-changing requests, a 20,000-byte request cap, a bounded process-local rate limiter, and forwarding headers honored only from explicitly trusted proxies.
+- **Headers:** a strict Content-Security-Policy, `nosniff`, `X-Frame-Options: DENY`, `no-referrer`, a restrictive Permissions-Policy, `Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy: same-origin`, HSTS on HTTPS responses, and `no-store` on workspace responses. Swagger UI is self-hosted so the CSP stays strict.
+- **Data handling:** parameterized SQL only; the frontend renders user and model text as text nodes, never as HTML. Public invitation pages serve only an allowlisted, owner-approved snapshot.
+- **Secrets:** `.env`, databases, keys, logs and backups are git-ignored; `.env.example` holds placeholders only. Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
-The application retains its actual 20,000-byte request cap, security headers/CSP, no-store workspace responses, origin checks, explicit proxy trust and bounded/locked rate limiter. Quotas/cache are process-local. It is not an account system, distributed quota service or certified production multi-user platform. Security reporting and release hygiene: [SECURITY.md](SECURITY.md).
+### Accessibility
 
-General PDFs/OCR, invitation delivery/verified guest identities, personal photo uploads and seating plans, verified vendor matchmaking, quantitative sustainability scores, live notifications, payment processing/refunds/FX, automatic duration-based rescheduling and account recovery remain unsupported/deferred. Live Gemini, formal accessibility certification, high-volume/production performance, hosted CI and public competition submission compliance remain unverified. No users, awards, rankings or model accuracy are claimed.
+- Semantic landmarks (one `main` per view), skip links, labelled form controls, live regions for status and errors, and keyboard-operable tabs, menus and dialogs, with visible `:focus-visible` outlines.
+- Text colours meet WCAG AA contrast (4.5:1, or 3:1 for large text). [tests/integration/test_accessibility.py](tests/integration/test_accessibility.py) checks the shared design tokens.
+- `prefers-reduced-motion` and data-saving modes replace the 3D/WebGL landing sequence with static artwork, and decorative glyphs are hidden from screen readers.
+- Swagger UI at `/api/docs` gets local contrast overrides, named expand buttons and corrected heading levels.
 
-Use the [release checklist and publishing commands](docs/GITHUB_RELEASE_CHECKLIST.md). The audit verifies a disposable Git candidate index; local `.venv`, databases, secrets, screenshots, profiles and backup archives are excluded and retained privately. No repository was committed, pushed or published by this cleanup.
+## 10. Limitations
+
+- Saved events need **one instance with durable SQLite storage**. Serverless and ephemeral containers are not supported (Cloud Run fails closed), and Vercel is not verified.
+- There are no accounts: clearing the browser cookie loses access, and there is no recovery or cross-device sharing.
+- Public RSVPs are unverified, invitation links are unlisted rather than password-protected, and nothing is emailed or sent.
+- The following are not implemented: PDF/OCR quote parsing, photo uploads, seating plans, payments and FX, and live vendor availability.
+- Rate limits and caches are process-local. Live Gemini behavior, hosted deployment, formal WCAG certification and production load have not been verified.
+
+Full details: [docs/FINAL_AUDIT.md](docs/FINAL_AUDIT.md) and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+## 11. Documentation
+
+[docs/README.md](docs/README.md) indexes every document: specifications (budget rules, deployment), feature references, audits and historical build reports.
 
 ## License
 
-The existing [MIT license](LICENSE), copyright 2026 Ayush, is preserved unchanged. The self-hosted Swagger distribution has its own [Apache-2.0 license and notices](vendor/swagger-ui-5.34.0/README.md). Check dependency licenses and your rights to any future contributed imagery or data before redistribution.
+[MIT](LICENSE), copyright 2026 Ayush. The self-hosted Swagger UI is Apache-2.0 ([notices](vendor/swagger-ui-5.34.0/README.md)).

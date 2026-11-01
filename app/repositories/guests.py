@@ -1,22 +1,34 @@
 """Roster documents and event revision/history commit in the same SQLite transaction."""
 
 import hashlib
+import sqlite3
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from pydantic import ValidationError
 
 from app.core.errors import RevisionConflict, UnsupportedSchema, WorkspaceNotFound
-from app.schemas.guests import Guest, GuestList, GuestMutation, GuestStats
+from app.repositories.workspaces import WorkspaceRepository
+from app.schemas.guests import (
+    Guest,
+    GuestCreate,
+    GuestDelete,
+    GuestList,
+    GuestMutation,
+    GuestStats,
+    GuestUpdate,
+    GuestValues,
+)
+from app.schemas.workspaces import EventWorkspace
 from app.services.workspaces import next_revision
 
 
-def _exists(connection):
+def _exists(connection: sqlite3.Connection) -> tuple[int] | None:
     return connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='guests'").fetchone()
 
 
-def _schema(connection):
+def _schema(connection: sqlite3.Connection) -> None:
     connection.execute(
         "CREATE TABLE IF NOT EXISTS guests (id TEXT PRIMARY KEY, "
         "event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE, owner TEXT NOT NULL, "
@@ -25,7 +37,7 @@ def _schema(connection):
     connection.execute("CREATE INDEX IF NOT EXISTS guests_event ON guests(event_id, owner)")
 
 
-def _rows(connection, owner, event_id):
+def _rows(connection: sqlite3.Connection, owner: str, event_id: UUID) -> list[Guest]:
     if not _exists(connection):
         return []
     result = []
@@ -43,7 +55,9 @@ def _rows(connection, owner, event_id):
     return result
 
 
-def roster(event, guests, q="", rsvp=None, group=None):
+def roster(
+    event: EventWorkspace, guests: list[Guest], q: str = "", rsvp: str | None = None, group: str | None = None
+) -> GuestList:
     counts = {
         status: sum(1 + g.plus_ones for g in guests if g.rsvp == status)
         for status in ("pending", "confirmed", "declined", "maybe")
@@ -68,14 +82,27 @@ def roster(event, guests, q="", rsvp=None, group=None):
     return GuestList(event_id=event.id, revision=event.revision, guests=filtered, stats=stats)
 
 
-def read(repo, owner, event_id, q="", rsvp=None, group=None):
+def read(
+    repo: WorkspaceRepository,
+    owner: str,
+    event_id: UUID,
+    q: str = "",
+    rsvp: str | None = None,
+    group: str | None = None,
+) -> GuestList:
     with repo._connection() as connection:
         connection.execute("BEGIN")
         event = repo._read(connection, owner, str(event_id))
         return roster(event, _rows(connection, owner, event.id), q, rsvp, group)
 
 
-def add_public(connection, repo, owner, event, values):
+def add_public(
+    connection: sqlite3.Connection,
+    repo: WorkspaceRepository,
+    owner: str,
+    event: EventWorkspace,
+    values: GuestValues,
+) -> Guest:
     """Controlled create-only entry into the SAME roster, inside the publisher transaction."""
     if len(_rows(connection, owner, event.id)) >= 500:
         raise HTTPException(status_code=429, detail="Guest-list capacity reached. Contact the host")
@@ -92,7 +119,15 @@ def add_public(connection, repo, owner, event, values):
     return guest
 
 
-def write(repo, owner, event_id, body, *, guest_id=None, delete=False):
+def write(
+    repo: WorkspaceRepository,
+    owner: str,
+    event_id: UUID,
+    body: GuestCreate | GuestUpdate | GuestDelete,
+    *,
+    guest_id: UUID | None = None,
+    delete: bool = False,
+) -> GuestMutation:
     with repo._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         event = repo._read(connection, owner, str(event_id))

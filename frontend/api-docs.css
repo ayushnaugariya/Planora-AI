@@ -1,0 +1,12 @@
+/* WCAG AA contrast overrides for the self-hosted Swagger UI (white text needs >= 4.5:1). */
+.swagger-ui .opblock.opblock-get .opblock-summary-method { background: #4278ae; }
+.swagger-ui .opblock.opblock-post .opblock-summary-method { background: #2f845d; }
+.swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #2e816f; }
+.swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #da3636; }
+.swagger-ui .opblock.opblock-put .opblock-summary-method { background: #a3681f; }
+.swagger-ui .info .title small { background: #6f7581; }
+.swagger-ui .info .title small.version-stamp { background: #5c8003; }
+.swagger-ui .info a,
+.swagger-ui .info .url { color: #3c77ba; }
+.swagger-ui .json-schema-2020-12-expand-deep-button { color: #6c6c6c; }
+.swagger-ui :focus-visible { outline: 3px solid #705da8; outline-offset: 2px; }

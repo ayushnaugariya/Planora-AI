@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/events/{event_id}/readiness", tags=["readiness"]
 
 
 @router.post("", response_model=ReadinessReport)
-def analyze(event_id: UUID, body: ReadinessRequest, request: Request, owner: Owner):
+def analyze(event_id: UUID, body: ReadinessRequest, request: Request, owner: Owner) -> ReadinessReport:
     base, previews = snapshot(repository(request), owner, event_id, body.revision)
     report = readiness(base, previews)
     return explain_readiness(base, report, getattr(request.app.state, "llm", None) if body.explain else None)

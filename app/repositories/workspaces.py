@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import date
+from uuid import UUID
 
 from pydantic import ValidationError
 
@@ -25,12 +27,12 @@ class WorkspaceRepository(SQLiteStore):
             raise UnsupportedSchema("Invalid saved workspace") from exc
 
     @staticmethod
-    def _check_record(workspace, event_id, revision):
+    def _check_record(workspace: EventWorkspace, event_id: str, revision: int) -> None:
         if str(workspace.id) != str(event_id) or workspace.revision != revision:
             raise UnsupportedSchema("Workspace identity/revision integrity check failed")
 
     @staticmethod
-    def _read(connection, owner: str, event_id: str) -> EventWorkspace:
+    def _read(connection: sqlite3.Connection, owner: str, event_id: str) -> EventWorkspace:
         row = connection.execute(
             "SELECT document, revision FROM events WHERE id=? AND owner=?", (event_id, owner)
         ).fetchone()
@@ -96,7 +98,9 @@ class WorkspaceRepository(SQLiteStore):
         return workspace
 
     @staticmethod
-    def _save(connection, owner, workspace, expected_revision):
+    def _save(
+        connection: sqlite3.Connection, owner: str, workspace: EventWorkspace, expected_revision: int
+    ) -> None:
         """CAS write inside an existing transaction, also used by owned child edits."""
         current = WorkspaceRepository._read(connection, owner, str(workspace.id))
         if current.revision != expected_revision:
@@ -124,7 +128,7 @@ class WorkspaceRepository(SQLiteStore):
             connection.execute("DELETE FROM events WHERE id=? AND owner=?", (event_id, owner))
 
     @staticmethod
-    def _scenario(connection, owner, event_id, scenario_id):
+    def _scenario(connection: sqlite3.Connection, owner: str, event_id: str, scenario_id: str) -> Scenario:
         row = connection.execute(
             "SELECT document FROM scenarios WHERE id=? AND event_id=? AND owner=?",
             (scenario_id, event_id, owner),
@@ -139,7 +143,7 @@ class WorkspaceRepository(SQLiteStore):
             raise UnsupportedSchema("Scenario event integrity check failed")
         return result
 
-    def create_scenario(self, owner, scenario):
+    def create_scenario(self, owner: str, scenario: Scenario) -> Scenario:
         with self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             event = self._read(connection, owner, str(scenario.event_id))
@@ -156,14 +160,16 @@ class WorkspaceRepository(SQLiteStore):
             )
         return scenario
 
-    def get_scenario(self, owner, event_id, scenario_id):
+    def get_scenario(self, owner: str, event_id: str, scenario_id: str) -> Scenario:
         with self._connection() as connection:
             event = self._read(connection, owner, event_id)
             scenario = self._scenario(connection, owner, event_id, scenario_id)
             scenario.stale = event.revision != scenario.base_revision or scenario.evaluated_on != date.today()
             return scenario
 
-    def create_scenario_batch(self, owner, scenarios, request_id):
+    def create_scenario_batch(
+        self, owner: str, scenarios: list[Scenario], request_id: UUID
+    ) -> list[Scenario]:
         """Save a bounded recovery assessment atomically, with request-ID retry checks."""
         if not 1 <= len(scenarios) <= 3:
             raise ValueError("A recovery assessment requires one to three options")
@@ -212,7 +218,7 @@ class WorkspaceRepository(SQLiteStore):
                 )
         return scenarios
 
-    def list_scenarios(self, owner, event_id):
+    def list_scenarios(self, owner: str, event_id: str) -> list[Scenario]:
         with self._connection() as connection:
             event = self._read(connection, owner, event_id)
             rows = connection.execute(
@@ -223,7 +229,7 @@ class WorkspaceRepository(SQLiteStore):
             scenario.stale = event.revision != scenario.base_revision or scenario.evaluated_on != date.today()
         return result
 
-    def discard_scenario(self, owner, event_id, scenario_id):
+    def discard_scenario(self, owner: str, event_id: str, scenario_id: str) -> Scenario:
         with self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             self._read(connection, owner, event_id)
@@ -237,7 +243,9 @@ class WorkspaceRepository(SQLiteStore):
             )
         return scenario
 
-    def apply_scenario(self, owner, event_id, scenario_id, expected_revision, proposed):
+    def apply_scenario(
+        self, owner: str, event_id: str, scenario_id: str, expected_revision: int, proposed: EventWorkspace
+    ) -> EventWorkspace:
         with self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             event = self._read(connection, owner, event_id)

@@ -18,7 +18,7 @@ from pydantic import (
 from app.schemas.planning import Currency, clean_text
 
 
-def exact_decimal(value):
+def exact_decimal(value: object) -> object:
     if isinstance(value, (float, bool)):
         raise ValueError("Send decimal values as strings or integers, not floating-point numbers")
     return value
@@ -59,7 +59,7 @@ class ExpenseValues(BudgetInput):
 
     @field_validator("description", "notes", mode="before")
     @classmethod
-    def _clean(cls, value):
+    def _clean(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 
@@ -120,7 +120,7 @@ class Allocation(BudgetInput):
 
     @field_validator("label", mode="before")
     @classmethod
-    def _label(cls, value):
+    def _label(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 

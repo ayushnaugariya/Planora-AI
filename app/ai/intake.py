@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from pydantic import ValidationError
 
 from app.ai import gemini as ai
+from app.ai.gemini import LLM
 from app.schemas.intake import BriefFields, EventBrief
 from app.schemas.planning import PlanRequest
 from app.services.planning import build_plan
@@ -30,7 +31,7 @@ SYSTEM = (
 )
 
 
-def offline_fields(description):
+def offline_fields(description: str) -> BriefFields:
     """Conservative explicit-fact extraction; duplicates become clarification, not guesses."""
     text = description.lower()
     candidates = {}
@@ -72,7 +73,7 @@ def offline_fields(description):
     return BriefFields.model_validate(candidates)
 
 
-def extract_brief(description, client=None):
+def extract_brief(description: str, client: LLM | None = None) -> EventBrief:
     fields, source = offline_fields(description), "offline"
     if client is not None:
         try:

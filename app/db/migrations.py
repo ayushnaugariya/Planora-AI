@@ -1,12 +1,13 @@
 """Existing transactional SQLite schema 0/1 to 2 migration."""
 
 import json
+import sqlite3
 
 from app.core.errors import UnsupportedSchema
 from app.schemas.workspaces import EventWorkspace
 
 
-def migrate(connection) -> None:
+def migrate(connection: sqlite3.Connection) -> None:
     version = connection.execute("PRAGMA user_version").fetchone()[0]
     if version not in (0, 1, 2):
         raise UnsupportedSchema("Unsupported workspace schema version")

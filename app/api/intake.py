@@ -10,5 +10,5 @@ router = APIRouter(tags=["planning intelligence"])
 
 
 @router.post("/api/intake", response_model=EventBrief)
-def event_brief(body: IntakeRequest, request: Request, _owner: Owner):
+def event_brief(body: IntakeRequest, request: Request, _owner: Owner) -> EventBrief:
     return extract_brief(body.description, getattr(request.app.state, "llm", None))

@@ -14,7 +14,7 @@ class IntakeRequest(BudgetInput):
 
     @field_validator("description", mode="before")
     @classmethod
-    def _description(cls, value):
+    def _description(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 
@@ -33,7 +33,7 @@ class BriefFields(BudgetInput):
 
     @field_validator("title", "city", "theme")
     @classmethod
-    def _text(cls, value):
+    def _text(cls, value: str | None) -> str | None:
         return clean_text(value) if value is not None else None
 
 

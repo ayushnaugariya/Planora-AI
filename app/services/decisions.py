@@ -5,17 +5,21 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from app.ai import gemini as ai
+from app.ai.gemini import LLM
 from app.ai.workspace import answer, interpret
 from app.schemas.intelligence import DecisionCard, DecisionResponse
-from app.schemas.readiness import ReadinessOrdering
+from app.schemas.readiness import ReadinessOrdering, ReadinessReport
 from app.schemas.rescue import RescueRequest
 from app.schemas.scenarios import BudgetReduction
+from app.schemas.workspaces import EventWorkspace
 from app.services import engine
 from app.services.rescue import assess
 from app.services.scenarios import simulate
 
 
-def explain_readiness(base, report, client=None):
+def explain_readiness(
+    base: EventWorkspace, report: ReadinessReport, client: LLM | None = None
+) -> ReadinessReport:
     """AI may order only the three grounded actions; all prose and states stay server-owned."""
     if client is None:
         return report
@@ -60,7 +64,7 @@ def explain_readiness(base, report, client=None):
     return report
 
 
-def decide(base, question, client=None):
+def decide(base: EventWorkspace, question: str, client: LLM | None = None) -> DecisionResponse:
     summary = base.budget_summary
     evidence = [
         f"Revision {base.revision}; {base.details.guest_count} guests; {base.details.currency}.",

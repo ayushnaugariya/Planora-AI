@@ -34,12 +34,14 @@ router = APIRouter(prefix="/api/events/{event_id}/intelligence", tags=["event in
 
 
 @router.post("/decide", response_model=DecisionResponse)
-def decision(event_id: UUID, body: DecisionRequest, request: Request, owner: Owner):
+def decision(event_id: UUID, body: DecisionRequest, request: Request, owner: Owner) -> DecisionResponse:
     base = current(request, owner, event_id, body.revision)
     return decide(base, body.question, getattr(request.app.state, "llm", None))
 
 
-def quote_context(request, owner, event_id, body):
+def quote_context(
+    request: Request, owner: str, event_id: UUID, body: QuoteRequest | QuoteImport
+) -> EventWorkspace:
     base = current(request, owner, event_id, body.revision)
     validate_expense(
         base,
@@ -58,12 +60,12 @@ def quote_context(request, owner, event_id, body):
 
 
 @router.post("/quotes/analyze", response_model=QuoteAnalysis)
-def quote_analysis(event_id: UUID, body: QuoteRequest, request: Request, owner: Owner):
+def quote_analysis(event_id: UUID, body: QuoteRequest, request: Request, owner: Owner) -> QuoteAnalysis:
     return analyze_quote(quote_context(request, owner, event_id, body), body)
 
 
 @router.post("/quotes/record", response_model=EventWorkspace)
-def record_quote(event_id: UUID, body: QuoteImport, request: Request, owner: Owner):
+def record_quote(event_id: UUID, body: QuoteImport, request: Request, owner: Owner) -> EventWorkspace:
     if not body.approved:
         raise HTTPException(status_code=422, detail="Review the source and explicitly approve recording")
     base = repository(request).get(owner, str(event_id))
@@ -136,7 +138,7 @@ def record_quote(event_id: UUID, body: QuoteImport, request: Request, owner: Own
 
 
 @router.post("/design", response_model=DesignStudio)
-def design(event_id: UUID, body: DesignRequest, request: Request, owner: Owner):
+def design(event_id: UUID, body: DesignRequest, request: Request, owner: Owner) -> DesignStudio:
     return studio(
         current(request, owner, event_id, body.revision),
         body.brief,
@@ -146,12 +148,12 @@ def design(event_id: UUID, body: DesignRequest, request: Request, owner: Owner):
 
 
 @router.get("/design/preferred", response_model=PreferredDesign | None)
-def preferred(event_id: UUID, request: Request, owner: Owner):
+def preferred(event_id: UUID, request: Request, owner: Owner) -> PreferredDesign | None:
     return read_preferred(repository(request), owner, event_id)
 
 
 @router.post("/design/preferred", response_model=PreferredDesign)
-def prefer(event_id: UUID, body: DesignSave, request: Request, owner: Owner):
+def prefer(event_id: UUID, body: DesignSave, request: Request, owner: Owner) -> PreferredDesign:
     if not body.approved:
         raise HTTPException(status_code=422, detail="Explicit design confirmation is required")
     base = current(request, owner, event_id, body.revision)
@@ -165,5 +167,5 @@ def prefer(event_id: UUID, body: DesignSave, request: Request, owner: Owner):
 
 
 @router.post("/timeline", response_model=DelayAnalysis)
-def timeline(event_id: UUID, body: DelayRequest, request: Request, owner: Owner):
+def timeline(event_id: UUID, body: DelayRequest, request: Request, owner: Owner) -> DelayAnalysis:
     return delay_analysis(current(request, owner, event_id, body.revision), body)

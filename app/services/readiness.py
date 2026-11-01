@@ -1,17 +1,22 @@
 """Transparent recorded checks, not a weighted prediction of real-world event success."""
 
+from collections.abc import Sequence
 from datetime import date
 
 from app.schemas.readiness import ReadinessAction, ReadinessCheck, ReadinessDimension, ReadinessReport
+from app.schemas.scenarios import Scenario
+from app.schemas.workspaces import EventWorkspace
 from app.services.scenarios import dependency_reasons
 
 
-def readiness(base, previews=(), *, today=None):
+def readiness(
+    base: EventWorkspace, previews: Sequence[Scenario] = (), *, today: date | None = None
+) -> ReadinessReport:
     today = today or date.today()
     summary = base.budget_summary
     dimensions, candidates = [], []
 
-    def dimension(key, title, specs):
+    def dimension(key: str, title: str, specs: list[tuple]) -> None:
         checks = []
         for check_id, label, status, evidence, destination, action, impact, critical in specs:
             checks.append(

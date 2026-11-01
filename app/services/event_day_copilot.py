@@ -1,13 +1,18 @@
 """Grounded read-only attention and dependency impact, shared by incidents and copilot."""
 
+from uuid import UUID
+
 from fastapi import HTTPException
 
 from app.ai.command_center import order
-from app.schemas.command_center import CopilotResult, DayRecommendation
+from app.ai.gemini import LLM
+from app.schemas.command_center import CopilotRequest, CopilotResult, DayDashboard, DayRecommendation
 from app.services.command_center import affected_tasks
 
 
-def advise(view, body, client=None, incident_id=None):
+def advise(
+    view: DayDashboard, body: CopilotRequest, client: LLM | None = None, incident_id: UUID | None = None
+) -> CopilotResult:
     tasks = {t.id: t for t in view.tasks}
     if body.task_id is not None and body.task_id not in tasks:
         raise HTTPException(status_code=404, detail="Task does not belong to this event")

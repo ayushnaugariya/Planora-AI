@@ -26,12 +26,12 @@ class GuestValues(StrictInput):
 
     @field_validator("name", "email", "dietary", "accessibility", "notes", mode="before")
     @classmethod
-    def _text(cls, value):
+    def _text(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
     @field_validator("email")
     @classmethod
-    def _email(cls, value):
+    def _email(cls, value: str | None) -> str | None:
         if value and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
             raise ValueError("Enter an email address or leave it blank")
         return value

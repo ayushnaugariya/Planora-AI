@@ -1,7 +1,7 @@
 """Owned event-day overlays. The original planning API and schedule stay intact."""
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -19,7 +19,7 @@ Severity = Literal["low", "medium", "high", "critical"]
 class TextInput(StrictInput):
     @field_validator("*", mode="before")
     @classmethod
-    def clean(cls, value):
+    def clean(cls, value: object) -> object:
         if isinstance(value, str):
             value.encode("utf-8")  # Reject lone surrogates before persistence/provider use.
             return clean_text(value)
@@ -40,7 +40,7 @@ class TaskDetails(TextInput):
     depends_on: list[UUID] = Field(default_factory=list, max_length=20)
 
     @model_validator(mode="after")
-    def times(self):
+    def times(self) -> Self:
         if self.planned_end and (not self.planned_start or self.planned_end < self.planned_start):
             raise ValueError("An end time requires a start time and must not precede it")
         if self.status == "delayed" and not self.delay_reason:
@@ -91,7 +91,7 @@ class DaySettings(TextInput):
 
     @field_validator("timezone")
     @classmethod
-    def timezone_exists(cls, value):
+    def timezone_exists(cls, value: str | None) -> str | None:
         if value:
             try:
                 ZoneInfo(value)
@@ -133,7 +133,7 @@ class DayMutation(StrictInput):
 
     @field_validator("approved", mode="before")
     @classmethod
-    def explicit_approval(cls, value):
+    def explicit_approval(cls, value: object) -> object:
         if value is not True:
             raise ValueError("Explicit approval is required")
         return value

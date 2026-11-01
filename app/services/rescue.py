@@ -7,14 +7,15 @@ from uuid import uuid5
 from fastapi import HTTPException
 
 from app.schemas.budget import Allocation
-from app.schemas.rescue import RecoveryOption, RescueAssessment
+from app.schemas.rescue import RecoveryOption, RescueAssessment, RescueRequest
 from app.schemas.scenarios import BudgetReduction, DateChange, GuestChange, VendorCancellation
+from app.schemas.workspaces import EventWorkspace
 from app.services.budget import calculate_budget
 from app.services.engine import allocate
 from app.services.scenarios import simulate
 
 
-def _budget_options(base, target):
+def _budget_options(base: EventWorkspace, target: int) -> list[tuple[str, str, BudgetReduction]]:
     if target >= base.details.budget:
         raise HTTPException(status_code=422, detail="The reduced target must be below the saved budget")
     summary = calculate_budget(base)
@@ -69,7 +70,7 @@ def _budget_options(base, target):
     return results
 
 
-def assess(base, body, today=None):
+def assess(base: EventWorkspace, body: RescueRequest, today: date | None = None) -> RescueAssessment:
     today = today or date.today()
     days = (base.details.event_date - today).days
     urgency = "immediate" if days <= 7 else "soon" if days <= 30 else "planning"

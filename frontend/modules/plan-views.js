@@ -44,7 +44,15 @@ function renderHealth(plan) {
             line.tip ? h("span", { class: "tip", text: line.tip }) : null),
           h("td", { class: "num", text: money(line.amount) }),
           h("td", { class: "num", text: line.percent.toFixed(1) + "%" }),
-          h("td", { class: "num", text: financialMoney(state.workspace.budget_summary.categories.find((category) => category.key === line.key).per_guest_allocation) })));
+          h(
+            "td",
+            {
+              class: "num",
+              text: financialMoney(
+                state.workspace.budget_summary.categories.find((category) => category.key === line.key).per_guest_allocation
+              )
+            }
+          )));
     });
     foot.append(h("tr", {},
       h("td", { text: "Allocated" }),
@@ -57,7 +65,11 @@ function renderHealth(plan) {
 
   function renderTimeline(plan) {
     const key = "eventra:done:" + planKey(plan);
-    const done = new Set(state.workspace ? state.workspace.tasks.filter((t) => t.completed).map((t) => t.milestone_index) : store.get(key, []));
+    const done = new Set(
+      state.workspace ? state.workspace.tasks.filter((t) => t.completed).map((t) => t.milestone_index) : store.get(
+        key, []
+      )
+    );
     const ol = $("timeline-list");
     clear(ol);
     const total = plan.timeline.filter((m) => m.category !== "event").length;
@@ -81,7 +93,10 @@ function renderHealth(plan) {
       } else {
         const cb = h("input", { type: "checkbox", checked: done.has(i) });
         cb.addEventListener("change", async () => {
-          if (state.workspace) { await saveProgress(cb, state.workspace.tasks.find((t) => t.milestone_index === i).id, true); return; }
+          if (state.workspace) {
+            await saveProgress(cb, state.workspace.tasks.find((t) => t.milestone_index === i).id, true);
+            return;
+          }
           if (cb.checked) done.add(i); else done.delete(i);
           li.classList.toggle("done", cb.checked);
           store.set(key, [...done]);
@@ -98,7 +113,13 @@ function renderHealth(plan) {
     const root = $("vendor-list");
     clear(root);
     const key = "eventra:vendor:" + planKey(plan);
-    const done = new Set(state.workspace ? state.workspace.vendors.flatMap((v) => v.checklist.filter((c) => c.completed).map((c) => `${plan.vendors[v.group_index].key}:${c.item_index}`)) : store.get(key, []));
+    const done = new Set(
+      state.workspace ? state.workspace.vendors.flatMap(
+        (v) => v.checklist.filter((c) => c.completed).map(
+          (c) => `${plan.vendors[v.group_index].key}:${c.item_index}`
+        )
+      ) : store.get(key, [])
+    );
     plan.vendors.forEach((v, vi) => {
       const checks = h("ul", { class: "checks" });
       v.checklist.forEach((item, ci) => {
@@ -119,12 +140,34 @@ function renderHealth(plan) {
         h("details", { open: vi === 0 },
           h("summary", {},
             h("span", { class: "v-name", text: v.label }),
-            h("span", { class: "badge", text: state.workspace?.vendors.find((item) => item.group_index === vi)?.booking_status || "Status not recorded" }),
+            h(
+              "span",
+              {
+                class: "badge",
+                text: state.workspace?.vendors.find((item) => item.group_index === vi)?.booking_status || "Status not recorded"
+              }
+            ),
             h("span", { class: "v-by", text: `Book by ${fmtDate(v.book_by)} · budget ${money(v.budget)}` })),
           h("div", { class: "vendor-body" },
             state.workspace ? h('div', {class:'vendor-record'},
-              h('p', {}, state.workspace.vendors[vi].name || 'Contact not recorded', h('small', {text:state.workspace.vendors[vi].contact || 'Add contact details and booking status'})),
-              h('button',{type:'button',class:'ghost','data-vendor-id':state.workspace.vendors[vi].id,text:'Edit vendor details'})) : null,
+              h(
+                'p',
+                {},
+                state.workspace.vendors[vi].name || 'Contact not recorded',
+                h(
+                  'small',
+                  {text:state.workspace.vendors[vi].contact || 'Add contact details and booking status'}
+                )
+              ),
+              h(
+                'button',
+                {
+                  type:'button',
+                  class:'ghost',
+                  'data-vendor-id':state.workspace.vendors[vi].id,
+                  text:'Edit vendor details'
+                }
+              )) : null,
             h("div", {}, h("h4", { text: "Checklist" }), checks),
             h("div", {},
               h("h4", { text: "Questions to ask" }), list(v.ask),
@@ -136,7 +179,15 @@ function renderHealth(plan) {
     const ul = $("idea-list");
     clear(ul);
     for (const idea of plan.ideas) {
-      ul.append(h("li", {}, h("strong", { text: idea.title }), h("span", { text: idea.description }), h("span", { class: "cat", text: " " + idea.category })));
+      ul.append(
+        h(
+          "li",
+          {},
+          h("strong", { text: idea.title }),
+          h("span", { text: idea.description }),
+          h("span", { class: "cat", text: " " + idea.category })
+        )
+      );
     }
     const tips = $("tip-list");
     clear(tips);

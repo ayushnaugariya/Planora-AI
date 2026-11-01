@@ -7,17 +7,24 @@ export function mountScrollStory(){
   if(getComputedStyle(root).getPropertyValue('--scroll-story-ready').trim()!=='1')return;
   root.hidden=false;
   const reduced=matchMedia('(prefers-reduced-motion:reduce)'),short=matchMedia('(max-height:650px)');
-  const chapters=[...root.querySelectorAll('.journey-chapter')],buttons=[...root.querySelectorAll('[data-journey-go]')];
+  const chapters=[...root.querySelectorAll('.journey-chapter')],
+  buttons=[...root.querySelectorAll('[data-journey-go]')];
   const scene=$('journey-scene'),pause=$('journey-motion'),hero=$('cinematic-hero');
-  const progress=h('div',{class:'home-read-progress','aria-hidden':'true'},h('span'));document.body.append(progress);
+  const progress=h('div',{class:'home-read-progress','aria-hidden':'true'},h('span'));
+  document.body.append(progress);
   const arrival=document.querySelector('.portal-arrival-stage');
-  const heroDepth=h('div',{class:'home-scroll-depth'});if(arrival){arrival.before(heroDepth);heroDepth.append(arrival);}
+  const heroDepth=h('div',{class:'home-scroll-depth'});
+  if(arrival){arrival.before(heroDepth);heroDepth.append(arrival);}
   let frame=0,active=-1,enhanced=false,paused=false;
   const clamp=(v,min=0,max=1)=>Math.max(min,Math.min(max,v));
   function chapter(index){
     if(index===active)return;active=index;root.dataset.chapter=String(index);
     chapters.forEach((article,i)=>{article.hidden=enhanced&&i!==index;});
-    buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
+    buttons.forEach(
+      (button,i)=>{
+        if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+      }
+    );
     $('journey-position').textContent=`0${index+1} / 04`;
   }
   function draw(){
@@ -65,11 +72,15 @@ export function mountScrollStory(){
   $('scene-motion-toggle').addEventListener('click',policy);
   addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
   reduced.addEventListener('change',policy);short.addEventListener('change',policy);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else schedule();});
+  document.addEventListener(
+    'visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else schedule();}
+  );
   document.addEventListener('planora:workspace',schedule);addEventListener('hashchange',schedule);
   document.addEventListener('planora:demo-data',event=>{
     const example=event.detail.workspace;
-    $('journey-budget-value').textContent=financialMoney(example.budget_summary.total_budget,example.details.currency);
+    $('journey-budget-value').textContent=financialMoney(
+      example.budget_summary.total_budget,example.details.currency
+    );
     $('journey-guest-value').textContent=`${example.details.guest_count} guests`;
     $('journey-task-value').textContent=`${example.plan.timeline.length} dated milestones`;
   });

@@ -3,7 +3,9 @@
 import logging
 
 from app.ai import gemini as ai
-from app.schemas.negotiation import NegotiationStrategy
+from app.ai.gemini import LLM
+from app.schemas.negotiation import NegotiationFacts, NegotiationInput, NegotiationStrategy
+from app.schemas.workspaces import EventWorkspace
 
 log = logging.getLogger("eventra.negotiation")
 SYSTEM = (
@@ -16,7 +18,9 @@ SYSTEM = (
 )
 
 
-def strategy(base, body, facts, client):
+def strategy(
+    base: EventWorkspace, body: NegotiationInput, facts: NegotiationFacts, client: LLM | None
+) -> tuple[NegotiationStrategy, str]:
     default = NegotiationStrategy(
         revision=base.revision, tone="cordial", tactics=["itemized_total", "confirm_terms", "protect_access"]
     )

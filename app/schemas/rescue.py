@@ -1,7 +1,7 @@
 """Rescue input is untrusted data; output contains existing validated scenarios."""
 
 from datetime import date
-from typing import Literal
+from typing import Literal, Self
 from uuid import UUID
 
 from pydantic import Field, field_validator, model_validator
@@ -18,7 +18,7 @@ class ReplacementQuote(BudgetInput):
 
     @field_validator("label", mode="before")
     @classmethod
-    def _label(cls, value):
+    def _label(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 
@@ -45,11 +45,11 @@ class RescueRequest(BudgetInput):
 
     @field_validator("description", mode="before")
     @classmethod
-    def _description(cls, value):
+    def _description(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
     @model_validator(mode="after")
-    def _required(self):
+    def _required(self) -> Self:
         field = {
             "budget_reduction": "target_budget",
             "guest_change": "guest_count",

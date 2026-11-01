@@ -1,6 +1,8 @@
 """Deterministic event-day operations; no financial or scenario application authority."""
 
+from collections.abc import Container
 from datetime import UTC, datetime
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
@@ -9,15 +11,18 @@ from app.schemas.command_center import (
     Activity,
     Arrival,
     DayDashboard,
+    DayDocument,
+    DayMutation,
     DayStats,
     DayTask,
     DayVendor,
     Incident,
     OperationalTask,
 )
+from app.schemas.workspaces import EventWorkspace
 
 
-def task_view(base, document):
+def task_view(base: EventWorkspace, document: DayDocument) -> dict[UUID, OperationalTask]:
     saved = {task.id: task.model_copy(deep=True) for task in document.tasks if task.custom}
     overlays = {task.id: task for task in document.tasks if not task.custom}
     for task in base.tasks:
@@ -43,7 +48,7 @@ def task_view(base, document):
     return saved
 
 
-def dashboard(base, document, now=None):
+def dashboard(base: EventWorkspace, document: DayDocument, now: datetime | None = None) -> DayDashboard:
     now = now or datetime.now(UTC)
     zone = document.settings.timezone
     # Preserve the legacy server-calendar convention unless explicitly configured.
@@ -139,15 +144,15 @@ def dashboard(base, document, now=None):
     )
 
 
-def _member(key, keys, label):
+def _member(key: UUID | None, keys: Container[UUID], label: str) -> None:
     if key is not None and key not in keys:
         raise HTTPException(status_code=404, detail=f"{label} does not belong to this event")
 
 
-def _graph(tasks):
+def _graph(tasks: dict[UUID, OperationalTask]) -> None:
     visiting, visited = set(), set()
 
-    def visit(key):
+    def visit(key: UUID) -> None:
         if key in visiting:
             raise HTTPException(status_code=422, detail="Task dependencies must not form a cycle")
         if key in visited:
@@ -163,7 +168,7 @@ def _graph(tasks):
         visit(key)
 
 
-def apply_operation(base, document, body, now):
+def apply_operation(base: EventWorkspace, document: DayDocument, body: DayMutation, now: datetime) -> None:
     op = body.operation
     tasks = task_view(base, document)
     vendor_ids = {v.id for v in base.vendors}
@@ -273,7 +278,9 @@ def apply_operation(base, document, body, now):
     )
 
 
-def affected_tasks(view, task_id=None, vendor_id=None):
+def affected_tasks(
+    view: DayDashboard, task_id: UUID | None = None, vendor_id: UUID | None = None
+) -> list[UUID]:
     """Conservative dependency reachability, not invented minute-by-minute rescheduling."""
     keys = {
         t.id for t in view.tasks if t.id == task_id or (vendor_id is not None and t.vendor_id == vendor_id)

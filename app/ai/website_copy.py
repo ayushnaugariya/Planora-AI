@@ -3,8 +3,9 @@
 import logging
 
 from app.ai import gemini as ai
+from app.ai.gemini import LLM
 from app.core.cache import TTLCache
-from app.schemas.websites import CopyRecipe, WebsiteCopy
+from app.schemas.websites import ContentRequest, CopyRecipe, WebsiteCopy
 
 log = logging.getLogger("eventra.website")
 _recipes = TTLCache(maxsize=64, ttl=300)
@@ -16,7 +17,7 @@ SYSTEM = (
 )
 
 
-def generate(body, client):
+def generate(body: ContentRequest, client: LLM | None) -> WebsiteCopy:
     recipe = CopyRecipe(opening="together", closing="company")
     source = "offline"
     if client is not None:

@@ -1,15 +1,18 @@
 """One owned additive document; operations, activity, receipts and workspace CAS are atomic."""
 
 import hashlib
+import sqlite3
 from datetime import UTC, datetime
+from uuid import UUID
 
 from app.core.errors import RevisionConflict, UnsupportedSchema
-from app.schemas.command_center import DayDocument, DayResult, Receipt
+from app.repositories.workspaces import WorkspaceRepository
+from app.schemas.command_center import DayDashboard, DayDocument, DayMutation, DayResult, Receipt
 from app.services.command_center import apply_operation, dashboard
 from app.services.workspaces import next_revision
 
 
-def _read(connection, owner, event_id):
+def _read(connection: sqlite3.Connection, owner: str, event_id: UUID) -> DayDocument:
     if not connection.execute("SELECT 1 FROM sqlite_master WHERE name='event_day'").fetchone():
         return DayDocument(event_id=event_id)
     row = connection.execute(
@@ -36,14 +39,14 @@ def _read(connection, owner, event_id):
         raise UnsupportedSchema from exc
 
 
-def read(repo, owner, event_id):
+def read(repo: WorkspaceRepository, owner: str, event_id: UUID) -> DayDashboard:
     with repo._connection() as connection:
         connection.execute("BEGIN")
         base = repo._read(connection, owner, str(event_id))
         return dashboard(base, _read(connection, owner, base.id))
 
 
-def mutate(repo, owner, event_id, body):
+def mutate(repo: WorkspaceRepository, owner: str, event_id: UUID, body: DayMutation) -> DayResult:
     with repo._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         base = repo._read(connection, owner, str(event_id))

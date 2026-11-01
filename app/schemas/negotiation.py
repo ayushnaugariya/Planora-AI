@@ -46,7 +46,7 @@ class NegotiationInput(StrictInput):
 
     @field_validator("instruction", mode="before")
     @classmethod
-    def _text(cls, value):
+    def _text(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 
@@ -99,7 +99,7 @@ class DraftSave(StrictInput):
 
     @field_validator("message", "instruction", mode="before")
     @classmethod
-    def _text(cls, value):
+    def _text(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 

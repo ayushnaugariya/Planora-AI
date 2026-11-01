@@ -1,12 +1,15 @@
 """Local concept recipes and exact saved category context; optional AI only orders styles."""
 
 import logging
+from collections.abc import Sequence
 
 from pydantic import Field
 
 from app.ai import gemini as ai
+from app.ai.gemini import LLM
 from app.schemas.budget import BudgetInput
 from app.schemas.intelligence import DesignConcept, DesignStudio, Style
+from app.schemas.workspaces import EventWorkspace
 
 log = logging.getLogger("eventra.design")
 RECIPES = {
@@ -53,7 +56,7 @@ class StyleOrder(BudgetInput):
     styles: list[Style] = Field(min_length=3, max_length=3)
 
 
-def concept(base, style, colors=()):
+def concept(base: EventWorkspace, style: str, colors: Sequence[str] = ()) -> DesignConcept:
     title, palette, directions = RECIPES[style]
     categories = {item.key: item for item in base.budget_summary.categories}
     links = []
@@ -82,7 +85,9 @@ def concept(base, style, colors=()):
     )
 
 
-def studio(base, brief, client=None, colors=()):
+def studio(
+    base: EventWorkspace, brief: str, client: LLM | None = None, colors: Sequence[str] = ()
+) -> DesignStudio:
     styles, source = list(RECIPES), "offline"
     if client is not None:
         try:

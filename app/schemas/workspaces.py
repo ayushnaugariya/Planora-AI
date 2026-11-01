@@ -165,5 +165,5 @@ class EventChat(RevisionRequest):
 
     @field_validator("question", mode="before")
     @classmethod
-    def _question(cls, value):
+    def _question(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value

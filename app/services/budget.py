@@ -5,14 +5,15 @@ from decimal import Decimal
 
 from fastapi import HTTPException
 
-from app.schemas.budget import Allocation, BudgetSummary, BudgetWarning, CategorySummary, cents
+from app.schemas.budget import Allocation, BudgetSummary, BudgetWarning, CategorySummary, ExpenseRecord, cents
 from app.schemas.planning import BudgetLine
+from app.schemas.workspaces import EventWorkspace
 from app.services import engine
 
 ZERO = Decimal("0.00")
 
 
-def effective_cost(expense):
+def effective_cost(expense: ExpenseRecord) -> Decimal:
     if expense.cancelled:
         return max(expense.paid_amount, expense.committed_amount or ZERO)
     preferred = expense.committed_amount
@@ -25,7 +26,7 @@ def effective_cost(expense):
     return max(expense.paid_amount, preferred or ZERO)
 
 
-def calculate_budget(workspace) -> BudgetSummary:
+def calculate_budget(workspace: EventWorkspace) -> BudgetSummary:
     categories = []
     warnings = []
     unknown = []
@@ -247,7 +248,7 @@ def calculate_budget(workspace) -> BudgetSummary:
     )
 
 
-def set_allocations(workspace, allocations: list[Allocation]):
+def set_allocations(workspace: EventWorkspace, allocations: list[Allocation]) -> None:
     keys = [item.key for item in allocations]
     if len(set(keys)) != len(keys):
         raise HTTPException(status_code=422, detail="Allocation keys must be unique")
@@ -263,7 +264,9 @@ def set_allocations(workspace, allocations: list[Allocation]):
     workspace.allocations_manual = True
 
 
-def sync_budget(workspace, *, refresh_narrative=True, mutation_time=None):
+def sync_budget(
+    workspace: EventWorkspace, *, refresh_narrative: bool = True, mutation_time: datetime | None = None
+) -> None:
     """Synchronize all legacy derived display fields without changing allocations."""
     plan = workspace.plan
     plan.budget, plan.currency, plan.guest_count = (

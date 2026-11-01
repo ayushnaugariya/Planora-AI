@@ -23,13 +23,17 @@ export function countTo(element, value, format, {from='0'}={}) {
   const initial=Number(from);
   const finish=()=>{element.textContent=format(value);counters.delete(element);};
   element.setAttribute('aria-label',format(value));
-  if (reduced.matches || !Number.isFinite(target)||!Number.isFinite(initial)||target===initial) { finish(); return; }
+  if (reduced.matches || !Number.isFinite(target)||!Number.isFinite(initial)||target===initial) {
+    finish(); return;
+  }
   const start = performance.now();
   const tick = (now) => {
     if(!element.isConnected){counters.delete(element);return;}
     if(reduced.matches||document.hidden){finish();return;}
     const progress = Math.min(1, (now - start) / 650);
-    element.textContent = progress === 1 ? format(value) : format(String(Math.round(initial+(target-initial) * (1 - (1 - progress) ** 3))));
+    element.textContent = progress === 1 ? format(value) : format(
+      String(Math.round(initial+(target-initial) * (1 - (1 - progress) ** 3)))
+    );
     if (progress < 1) counters.set(element,requestAnimationFrame(tick));
     else counters.delete(element);
   };

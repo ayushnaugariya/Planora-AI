@@ -30,12 +30,12 @@ def list_guests(
     q: Annotated[str, Query(max_length=120)] = "",
     rsvp: RSVP | None = None,
     group: GuestGroup | None = None,
-):
+) -> GuestList:
     return guests.read(repository(request), owner, event_id, q, rsvp, group)
 
 
 @router.get("/{guest_id}", response_model=Guest)
-def get_guest(event_id: UUID, guest_id: UUID, request: Request, owner: Owner):
+def get_guest(event_id: UUID, guest_id: UUID, request: Request, owner: Owner) -> Guest:
     result = guests.read(repository(request), owner, event_id)
     guest = next((item for item in result.guests if item.id == guest_id), None)
     if guest is None:
@@ -44,15 +44,19 @@ def get_guest(event_id: UUID, guest_id: UUID, request: Request, owner: Owner):
 
 
 @router.post("", response_model=GuestMutation, status_code=201)
-def add_guest(event_id: UUID, body: GuestCreate, request: Request, owner: Owner):
+def add_guest(event_id: UUID, body: GuestCreate, request: Request, owner: Owner) -> GuestMutation:
     return guests.write(repository(request), owner, event_id, body)
 
 
 @router.put("/{guest_id}", response_model=GuestMutation)
-def edit_guest(event_id: UUID, guest_id: UUID, body: GuestUpdate, request: Request, owner: Owner):
+def edit_guest(
+    event_id: UUID, guest_id: UUID, body: GuestUpdate, request: Request, owner: Owner
+) -> GuestMutation:
     return guests.write(repository(request), owner, event_id, body, guest_id=guest_id)
 
 
 @router.delete("/{guest_id}", response_model=GuestMutation)
-def remove_guest(event_id: UUID, guest_id: UUID, body: GuestDelete, request: Request, owner: Owner):
+def remove_guest(
+    event_id: UUID, guest_id: UUID, body: GuestDelete, request: Request, owner: Owner
+) -> GuestMutation:
     return guests.write(repository(request), owner, event_id, body, guest_id=guest_id, delete=True)

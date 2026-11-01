@@ -1,12 +1,15 @@
 """Grounded quote context, explicit uncertainty and editable professional drafts."""
 
 from decimal import Decimal
+from uuid import UUID
 
 from fastapi import HTTPException
 
+from app.ai.gemini import LLM
 from app.ai.negotiation import strategy
 from app.core.errors import WorkspaceNotFound
-from app.schemas.negotiation import NegotiationFacts, NegotiationResult
+from app.schemas.negotiation import NegotiationFacts, NegotiationInput, NegotiationResult
+from app.schemas.workspaces import EventWorkspace, VendorState
 from app.services.quote_analysis import analyze_quote
 
 TACTICS = {
@@ -59,14 +62,16 @@ REQUESTS = {
 }
 
 
-def vendor_for(base, vendor_id):
+def vendor_for(base: EventWorkspace, vendor_id: UUID) -> VendorState:
     vendor = next((v for v in base.vendors if v.id == vendor_id), None)
     if vendor is None:
         raise WorkspaceNotFound
     return vendor
 
 
-def context(base, vendor_id, body):
+def context(
+    base: EventWorkspace, vendor_id: UUID, body: NegotiationInput
+) -> tuple[NegotiationFacts, list[str], list[str]]:
     vendor = vendor_for(base, vendor_id)
     category = base.plan.vendors[vendor.group_index]
     missing, warnings, scope, terms, comparisons = [], [], [], {}, []
@@ -243,7 +248,9 @@ def context(base, vendor_id, body):
     return facts, list(dict.fromkeys(missing)), list(dict.fromkeys(warnings))
 
 
-def generate(base, vendor_id, body, client=None):
+def generate(
+    base: EventWorkspace, vendor_id: UUID, body: NegotiationInput, client: LLM | None = None
+) -> NegotiationResult:
     facts, missing, warnings = context(base, vendor_id, body)
     if missing:
         return NegotiationResult(

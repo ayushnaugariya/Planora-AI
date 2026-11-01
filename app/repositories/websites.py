@@ -2,29 +2,39 @@
 
 import hashlib
 import secrets
+import sqlite3
 from datetime import UTC, datetime
+from uuid import UUID
 
 from fastapi import HTTPException
 
 from app.core.errors import RevisionConflict, UnsupportedSchema
 from app.repositories import command_center, design_preferences, guests
+from app.repositories.workspaces import WorkspaceRepository
 from app.schemas.guests import GuestValues
 from app.schemas.websites import (
+    ApprovalRequest,
+    DraftRequest,
+    PublicResponse,
+    PublicWebsite,
+    PublishRequest,
     ResponseAcknowledgement,
     ScheduleItem,
+    WebsiteConfig,
     WebsiteRecord,
     WebsiteState,
 )
+from app.schemas.workspaces import EventWorkspace
 from app.services.websites import defaults, preview_hash, project
 
 
-def _exists(connection, table="event_websites"):
+def _exists(connection: sqlite3.Connection, table: str = "event_websites") -> tuple[int] | None:
     return connection.execute(
         "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
     ).fetchone()
 
 
-def _schema(connection):
+def _schema(connection: sqlite3.Connection) -> None:
     connection.execute(
         "CREATE TABLE IF NOT EXISTS event_websites (event_id TEXT PRIMARY KEY "
         "REFERENCES events(id) ON DELETE CASCADE, owner TEXT NOT NULL, format_version INTEGER NOT NULL "
@@ -33,7 +43,7 @@ def _schema(connection):
     )
 
 
-def _decode(row):
+def _decode(row: tuple) -> tuple[str, WebsiteRecord]:
     try:
         event_id, owner, version, revision, slug, text = row
         record = WebsiteRecord.model_validate_json(text)
@@ -50,7 +60,7 @@ def _decode(row):
         raise UnsupportedSchema from exc
 
 
-def _read(connection, owner, event_id):
+def _read(connection: sqlite3.Connection, owner: str, event_id: UUID) -> WebsiteRecord | None:
     if not _exists(connection):
         return None
     row = connection.execute("SELECT * FROM event_websites WHERE event_id=?", (str(event_id),)).fetchone()
@@ -62,7 +72,12 @@ def _read(connection, owner, event_id):
     return record
 
 
-def _state(base, record, initial=None, suggested=None):
+def _state(
+    base: EventWorkspace,
+    record: WebsiteRecord | None,
+    initial: WebsiteConfig | None = None,
+    suggested: list[ScheduleItem] | None = None,
+) -> WebsiteState:
     return WebsiteState(
         event_id=base.id,
         event_revision=base.revision,
@@ -76,7 +91,7 @@ def _state(base, record, initial=None, suggested=None):
     )
 
 
-def read(repo, owner, event_id):
+def read(repo: WorkspaceRepository, owner: str, event_id: UUID) -> WebsiteState:
     with repo._connection() as connection:
         connection.execute("BEGIN")
         base = repo._read(connection, owner, str(event_id))
@@ -91,7 +106,13 @@ def read(repo, owner, event_id):
     return _state(base, record, defaults(base, preferred, day) if record is None else None, suggestions)
 
 
-def mutate(repo, owner, event_id, body, operation):
+def mutate(
+    repo: WorkspaceRepository,
+    owner: str,
+    event_id: UUID,
+    body: DraftRequest | PublishRequest | ApprovalRequest,
+    operation: str,
+) -> WebsiteState:
     with repo._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         base = repo._read(connection, owner, str(event_id))
@@ -145,7 +166,7 @@ def mutate(repo, owner, event_id, body, operation):
         return _state(base, record)
 
 
-def _published(connection, slug):
+def _published(connection: sqlite3.Connection, slug: str) -> tuple[str, WebsiteRecord]:
     if not _exists(connection):
         raise HTTPException(status_code=404, detail="Invitation not available")
     row = connection.execute(
@@ -161,17 +182,17 @@ def _published(connection, slug):
     return owner, record
 
 
-def public_read(repo, slug):
+def public_read(repo: WorkspaceRepository, slug: str) -> PublicWebsite:
     with repo._connection() as connection:
         return _published(connection, slug)[1].published
 
 
-def _identity(name, email):
+def _identity(name: str, email: str) -> str:
     text = "email:" + email.casefold() if email else "name:" + name.casefold()
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def submit(repo, slug, body):
+def submit(repo: WorkspaceRepository, slug: str, body: PublicResponse) -> ResponseAcknowledgement:
     with repo._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         owner, record = _published(connection, slug)

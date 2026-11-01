@@ -1,5 +1,5 @@
 /* Deterministic public renderer, scoped so the planning studio/landing stay intact. */
-.event-site{--invite-accent:#7863b4;--invite-on-accent:#fff;--invite-bg:#fbf8f2;--invite-paper:#fffefa;--invite-ink:#243149;--invite-muted:#636a70;--invite-line:#ded8cf;background:var(--invite-bg);color:var(--invite-ink);font:16px/1.7 "Segoe UI",Arial,sans-serif;border-radius:18px;overflow:hidden;isolation:isolate;text-align:center}
+.event-site{--invite-accent:#705da8;--invite-on-accent:#fff;--invite-bg:#fbf8f2;--invite-paper:#fffefa;--invite-ink:#243149;--invite-muted:#636a70;--invite-line:#ded8cf;background:var(--invite-bg);color:var(--invite-ink);font:16px/1.7 "Segoe UI",Arial,sans-serif;border-radius:18px;overflow:hidden;isolation:isolate;text-align:center}
 .event-site *{box-sizing:border-box}
 .event-site h1,.event-site h2,.event-site h3{color:var(--invite-ink);font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:400;line-height:1.08;letter-spacing:-.04em;overflow-wrap:anywhere}
 .event-site h1{font-size:clamp(2.6rem,6vw,6.2rem);max-width:950px;margin:1.3rem auto}

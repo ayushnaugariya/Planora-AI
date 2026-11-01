@@ -3,10 +3,15 @@
 import hashlib
 from zoneinfo import ZoneInfo
 
+from app.schemas.command_center import DayDashboard
+from app.schemas.intelligence import PreferredDesign
 from app.schemas.websites import PublicRSVP, PublicVenue, PublicWebsite, ScheduleItem, WebsiteConfig
+from app.schemas.workspaces import EventWorkspace
 
 
-def defaults(base, preferred=None, day=None):
+def defaults(
+    base: EventWorkspace, preferred: PreferredDesign | None = None, day: DayDashboard | None = None
+) -> WebsiteConfig:
     theme = {"wedding": "ethereal", "birthday": "celebration", "anniversary": "editorial_luxe"}.get(
         base.details.event_type, "modern_minimal"
     )
@@ -37,7 +42,7 @@ def defaults(base, preferred=None, day=None):
     )
 
 
-def project(config, edition="preview"):
+def project(config: WebsiteConfig, edition: str = "preview") -> PublicWebsite:
     """Hidden values are absent/null, including in the network response and page source."""
     return PublicWebsite(
         edition=edition,
@@ -69,5 +74,5 @@ def project(config, edition="preview"):
     )
 
 
-def preview_hash(config):
+def preview_hash(config: WebsiteConfig) -> str:
     return hashlib.sha256(project(config).model_dump_json().encode()).hexdigest()

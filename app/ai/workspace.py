@@ -7,10 +7,12 @@ from typing import Literal
 from pydantic import Field, TypeAdapter
 
 from app.ai import gemini as ai
-from app.ai.gemini import safe_json
+from app.ai.gemini import LLM, safe_json
 from app.ai.intents import resolve
 from app.schemas.budget import BudgetInput
 from app.schemas.scenarios import Interpretation, ScenarioParameters
+from app.schemas.workspaces import EventWorkspace
+from app.services.engine import Core
 from app.services.insights import planning_attention
 
 log = logging.getLogger("eventra.workspace_ai")
@@ -27,7 +29,7 @@ class WorkspaceAdvice(BudgetInput):
     actions: list[AdviceAction] = Field(min_length=1, max_length=4)
 
 
-def financial_statement(workspace):
+def financial_statement(workspace: EventWorkspace) -> str:
     summary = workspace.budget_summary
     return (
         f"Recorded projected cost is {summary.projected_cost} {summary.currency}; "
@@ -41,7 +43,7 @@ def financial_statement(workspace):
     )
 
 
-def context(workspace):
+def context(workspace: EventWorkspace) -> dict[str, object]:
     summary = workspace.budget_summary.model_dump(mode="json")
     numeric = {key: value for key, value in summary.items() if key not in ("warnings", "categories")}
     numeric["categories"] = [
@@ -85,7 +87,7 @@ def context(workspace):
     }
 
 
-def answer(question, workspace, core, client):
+def answer(question: str, workspace: EventWorkspace, core: Core, client: LLM | None) -> tuple[str, str]:
     if client is not None:
         try:
             user_data = safe_json(
@@ -161,7 +163,7 @@ def answer(question, workspace, core, client):
     return ai.answer_question(question, workspace.details, core, None)
 
 
-def interpret(question, workspace, client):
+def interpret(question: str, workspace: EventWorkspace, client: LLM | None) -> Interpretation:
     candidate, clarification = resolve(question, workspace)
     if clarification:
         return Interpretation(parameters=None, source="offline", explanation=clarification)

@@ -29,24 +29,24 @@ router = APIRouter()
 PREFIX = "/api/events/{event_id}/website"
 
 
-def valid_slug(slug):
+def valid_slug(slug: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9_-]{32}", slug):
         raise HTTPException(status_code=404, detail="Invitation not available")
     return slug
 
 
 @router.get(PREFIX, response_model=WebsiteState, tags=["event website"])
-def get_website(event_id: UUID, request: Request, owner: Owner):
+def get_website(event_id: UUID, request: Request, owner: Owner) -> WebsiteState:
     return websites.read(repository(request), owner, event_id)
 
 
 @router.put(PREFIX, response_model=WebsiteState, tags=["event website"])
-def save_website(event_id: UUID, body: DraftRequest, request: Request, owner: Owner):
+def save_website(event_id: UUID, body: DraftRequest, request: Request, owner: Owner) -> WebsiteState:
     return websites.mutate(repository(request), owner, event_id, body, "save")
 
 
 @router.post(PREFIX + "/preview", response_model=WebsitePreview, tags=["event website"])
-def preview_website(event_id: UUID, body: DraftRequest, request: Request, owner: Owner):
+def preview_website(event_id: UUID, body: DraftRequest, request: Request, owner: Owner) -> WebsitePreview:
     current(request, owner, event_id, body.event_revision)
     saved = websites.read(repository(request), owner, event_id)
     if saved.revision != body.revision:
@@ -57,17 +57,17 @@ def preview_website(event_id: UUID, body: DraftRequest, request: Request, owner:
 
 
 @router.post(PREFIX + "/publish", response_model=WebsiteState, tags=["event website"])
-def publish_website(event_id: UUID, body: PublishRequest, request: Request, owner: Owner):
+def publish_website(event_id: UUID, body: PublishRequest, request: Request, owner: Owner) -> WebsiteState:
     return websites.mutate(repository(request), owner, event_id, body, "publish")
 
 
 @router.post(PREFIX + "/unpublish", response_model=WebsiteState, tags=["event website"])
-def unpublish_website(event_id: UUID, body: ApprovalRequest, request: Request, owner: Owner):
+def unpublish_website(event_id: UUID, body: ApprovalRequest, request: Request, owner: Owner) -> WebsiteState:
     return websites.mutate(repository(request), owner, event_id, body, "unpublish")
 
 
 @router.post(PREFIX + "/content", response_model=WebsiteCopy, tags=["event website"])
-def generate_copy(event_id: UUID, body: ContentRequest, request: Request, owner: Owner):
+def generate_copy(event_id: UUID, body: ContentRequest, request: Request, owner: Owner) -> WebsiteCopy:
     current(request, owner, event_id, body.event_revision)
     saved = websites.read(repository(request), owner, event_id)
     if body.revision != saved.revision:
@@ -76,7 +76,7 @@ def generate_copy(event_id: UUID, body: ContentRequest, request: Request, owner:
 
 
 @router.get("/api/public/websites/{slug}", response_model=PublicWebsite, tags=["public invitation"])
-def public_website(slug: str, request: Request):
+def public_website(slug: str, request: Request) -> PublicWebsite:
     return websites.public_read(repository(request), valid_slug(slug))
 
 
@@ -86,13 +86,13 @@ def public_website(slug: str, request: Request):
     status_code=202,
     tags=["public invitation"],
 )
-def public_rsvp(slug: str, body: PublicResponse, request: Request):
+def public_rsvp(slug: str, body: PublicResponse, request: Request) -> ResponseAcknowledgement:
     enforce_same_origin(request)
     return websites.submit(repository(request), valid_slug(slug), body)
 
 
 @router.get("/e/{slug}", include_in_schema=False)
-def public_page(slug: str, request: Request):
+def public_page(slug: str, request: Request) -> FileResponse:
     try:
         websites.public_read(repository(request), valid_slug(slug))
     except HTTPException as exc:

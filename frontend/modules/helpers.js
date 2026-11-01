@@ -21,7 +21,9 @@ import {state} from './state.js';
 
   const store = {
     get(key, fallback) {
-      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch {
+        return fallback;
+      }
     },
     set(key, value) {
       try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ }
@@ -39,12 +41,16 @@ import {state} from './state.js';
     return new Date(y, m - 1, d);
   }
   function fmtDate(iso) {
-    return parseDate(iso).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    return parseDate(iso).toLocaleDateString(
+      undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" }
+    );
   }
   let money = (n) => String(n);
   function setCurrency(code) {
     try {
-      const f = new Intl.NumberFormat(undefined, { style: "currency", currency: code, maximumFractionDigits: 0 });
+      const f = new Intl.NumberFormat(
+        undefined, { style: "currency", currency: code, maximumFractionDigits: 0 }
+      );
       money = (n) => f.format(n);
     } catch { money = (n) => `${code} ${Math.round(n)}`; }
   }
@@ -54,7 +60,9 @@ import {state} from './state.js';
     const [whole, fraction = ""] = (negative ? text.slice(1) : text).split(".");
     const units = BigInt(whole);
     const negativeFraction = negative && units === 0n;
-    const formatter = new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const formatter = new Intl.NumberFormat(
+      undefined, { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    );
     return formatter.formatToParts(negativeFraction ? -1n : negative ? -units : units).map((part) => {
       if (part.type === "fraction") return fraction.padEnd(2, "0").slice(0, 2);
       if (part.type === "integer" && negativeFraction) return "0";

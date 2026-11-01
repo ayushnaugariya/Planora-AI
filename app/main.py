@@ -3,6 +3,7 @@
 import logging
 import os
 import sqlite3
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -38,7 +39,7 @@ log = logging.getLogger("eventra")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.llm = ai.default_client()
     app.state.workspace_repository = WorkspaceRepository(
         database_path(),

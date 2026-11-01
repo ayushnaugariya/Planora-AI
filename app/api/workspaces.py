@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import ValidationError
 
 from app.api.dependencies import Owner, current, repository
-from app.schemas.planning import clean_text
+from app.schemas.planning import Plan, clean_text
 from app.schemas.workspaces import (
     ChatEntry,
     EventChat,
@@ -30,7 +30,7 @@ from app.services.workspaces import import_progress, next_revision, reconcile
 router = APIRouter(prefix="/api/events", tags=["workspaces"])
 
 
-def generated(details: EventDetails, request: Request):
+def generated(details: EventDetails, request: Request) -> Plan:
     try:
         preferences = details.planning_request()
     except ValidationError as exc:
@@ -41,7 +41,7 @@ def generated(details: EventDetails, request: Request):
 
 
 @router.post("", response_model=EventWorkspace, status_code=201)
-def create_event(body: EventCreate, request: Request, owner: Owner):
+def create_event(body: EventCreate, request: Request, owner: Owner) -> EventWorkspace:
     plan = generated(body.details, request)
     now = datetime.now(UTC)
     tasks, vendors = reconcile(None, plan)
@@ -62,17 +62,17 @@ def create_event(body: EventCreate, request: Request, owner: Owner):
 
 
 @router.get("", response_model=list[EventSummary])
-def list_events(request: Request, owner: Owner):
+def list_events(request: Request, owner: Owner) -> list[EventSummary]:
     return repository(request).list(owner)
 
 
 @router.get("/{event_id}", response_model=EventWorkspace)
-def get_event(event_id: UUID, request: Request, owner: Owner):
+def get_event(event_id: UUID, request: Request, owner: Owner) -> EventWorkspace:
     return repository(request).get(owner, str(event_id))
 
 
 @router.patch("/{event_id}", response_model=EventWorkspace)
-def update_event(event_id: UUID, body: EventUpdate, request: Request, owner: Owner):
+def update_event(event_id: UUID, body: EventUpdate, request: Request, owner: Owner) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     if body.details is not None:
         # A type change would discard existing task/vendor records. Require a
@@ -124,7 +124,7 @@ def update_event(event_id: UUID, body: EventUpdate, request: Request, owner: Own
 
 
 @router.post("/{event_id}/regenerate", response_model=EventWorkspace)
-def regenerate_event(event_id: UUID, body: RevisionRequest, request: Request, owner: Owner):
+def regenerate_event(event_id: UUID, body: RevisionRequest, request: Request, owner: Owner) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     return update_event(
         event_id, EventUpdate(revision=body.revision, details=workspace.details), request, owner
@@ -132,7 +132,7 @@ def regenerate_event(event_id: UUID, body: RevisionRequest, request: Request, ow
 
 
 @router.post("/{event_id}/chat", response_model=EventWorkspace)
-def event_chat(event_id: UUID, body: EventChat, request: Request, owner: Owner):
+def event_chat(event_id: UUID, body: EventChat, request: Request, owner: Owner) -> EventWorkspace:
     workspace = current(request, owner, event_id, body.revision)
     plan = workspace.plan
     core = engine.Core(
@@ -160,7 +160,7 @@ def event_chat(event_id: UUID, body: EventChat, request: Request, owner: Owner):
 
 
 @router.get("/{event_id}/ics")
-def event_ics(event_id: UUID, request: Request, owner: Owner):
+def event_ics(event_id: UUID, request: Request, owner: Owner) -> Response:
     workspace = repository(request).get(owner, str(event_id))
     body = engine.to_ics(
         workspace.plan.title,
@@ -176,7 +176,7 @@ def event_ics(event_id: UUID, request: Request, owner: Owner):
 
 
 @router.delete("/{event_id}", status_code=204)
-def delete_event(event_id: UUID, body: EventDelete, request: Request, owner: Owner):
+def delete_event(event_id: UUID, body: EventDelete, request: Request, owner: Owner) -> Response:
     if body.confirm_id != event_id:
         raise HTTPException(status_code=422, detail="Event deletion requires its matching confirmation ID")
     repository(request).delete(owner, str(event_id), body.revision)

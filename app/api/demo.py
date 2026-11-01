@@ -24,7 +24,7 @@ class Demo(BudgetInput):
 
 
 @router.get("/api/demo", response_model=Demo)
-def illustration():
+def illustration() -> Demo:
     event = fictional_workspace(uuid5(NAMESPACE_URL, "planora:fictional-demo"))
     vendor = next(
         item for item in event.vendors if event.plan.vendors[item.group_index].key == "entertainment"
@@ -57,7 +57,7 @@ class DemoCreate(BudgetInput):
 
 
 @router.post("/api/demo/workspace", response_model=EventWorkspace, status_code=201)
-def create_demo(body: DemoCreate, request: Request, owner: Owner):
+def create_demo(body: DemoCreate, request: Request, owner: Owner) -> EventWorkspace:
     if not body.acknowledge_fictional:
         raise HTTPException(status_code=422, detail="Confirm this is a new fictional workspace")
     event = fictional_workspace(uuid5(NAMESPACE_URL, f"planora:demo:{owner}:{body.request_id}"))

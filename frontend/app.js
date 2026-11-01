@@ -24,9 +24,22 @@ import {mountDecisionComparison} from '/static/modules/decision-comparison.js';
 import {mountScrollStory} from '/static/modules/scroll-story.js';
 import {mountSignatureIntelligence} from '/static/modules/signature-intelligence.js';
 import {mountReadiness} from '/static/modules/readiness.js';
-const {renderHealth,renderWarnings,renderBudget,renderTimeline,renderVendors,renderIdeas} = mountPlanViews({saveProgress});
-const {budgetMessage,resetExpenseForm,renderGuardian,fillAllocation} = mountBudget({api,applyWorkspace,setWorkspaceBusy});
-const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,renderScenarioPreview,updateScenarioApproval,refreshScenarios,fillScenarioInputs} = mountScenarios({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetails,resetExpenseForm});
+const {renderHealth,renderWarnings,renderBudget,renderTimeline,renderVendors,renderIdeas} = mountPlanViews(
+  {saveProgress}
+);
+const {budgetMessage,resetExpenseForm,renderGuardian,fillAllocation} = mountBudget(
+  {api,applyWorkspace,setWorkspaceBusy}
+);
+const {
+  scenarioMessage,
+  resetScenarios,
+  showScenarioFields,
+  renderScenarioChoices,
+  renderScenarioPreview,
+  updateScenarioApproval,
+  refreshScenarios,
+  fillScenarioInputs
+} = mountScenarios({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetails,resetExpenseForm});
 "use strict";
 
   // ---------- helpers ----------
@@ -61,7 +74,25 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   if (saved) restoreForm(saved);
 
   function restoreForm(s) {
-    for (const key of ["title", "event_date", "guest_count", "budget", "currency", "formality", "theme", "interests", "city", "notes", "venue_preferences", "cultural_requirements", "accessibility_requirements", "assumptions", "unresolved_decisions"]) {
+    for (
+      const key of [
+        "title",
+        "event_date",
+        "guest_count",
+        "budget",
+        "currency",
+        "formality",
+        "theme",
+        "interests",
+        "city",
+        "notes",
+        "venue_preferences",
+        "cultural_requirements",
+        "accessibility_requirements",
+        "assumptions",
+        "unresolved_decisions"
+      ]
+    ) {
       if (s[key] !== undefined && form.elements[key]) form.elements[key].value = s[key];
     }
     if (s.event_date && s.event_date < dateInput.min) dateInput.value = isoLocal(def);
@@ -140,7 +171,9 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     workspaceStatus("Saving event and building plan…");
     try {
       const path = state.workspace ? `/api/events/${state.workspace.id}` : "/api/events";
-      const body = state.workspace ? { revision: state.workspace.revision, details: payload } : { details: payload };
+      const body = state.workspace ? { revision: state.workspace.revision, details: payload } : {
+        details: payload
+      };
       const res = await api(path, body, state.workspace ? "PATCH" : "POST");
       applyWorkspace(await res.json());
       workspaceStatus("Event and plan saved.");
@@ -221,7 +254,9 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     const btn = $("ics-btn");
     btn.disabled = true;
     try {
-      const res = state.workspace ? await api(`/api/events/${state.workspace.id}/ics`, undefined, "GET") : await api("/api/ics", state.lastRequest);
+      const res = state.workspace ? await api(`/api/events/${state.workspace.id}/ics`, undefined, "GET") : await api(
+        "/api/ics", state.lastRequest
+      );
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = h("a", { href: url, download: "eventra-timeline.ics" });
@@ -247,7 +282,9 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
 
   function setWorkspaceBusy(busy) {
     state.workspaceBusy = busy;
-    document.querySelectorAll('[data-workspace-control], #plan-form input, #plan-form select, #plan-form textarea, #submit-btn, #chat-btn, #timeline-list input, #vendor-list input, .guardian input, .guardian select, .guardian textarea, .guardian button, [data-budget-action], .scenario-tool input, .scenario-tool select, .scenario-tool textarea, .scenario-tool button, .signature-tool input, .signature-tool select, .signature-tool textarea, .signature-tool button').forEach((el) => { el.disabled = busy; });
+    document.querySelectorAll(
+      '[data-workspace-control], #plan-form input, #plan-form select, #plan-form textarea, #submit-btn, #chat-btn, #timeline-list input, #vendor-list input, .guardian input, .guardian select, .guardian textarea, .guardian button, [data-budget-action], .scenario-tool input, .scenario-tool select, .scenario-tool textarea, .scenario-tool button, .signature-tool input, .signature-tool select, .signature-tool textarea, .signature-tool button'
+    ).forEach((el) => { el.disabled = busy; });
     if (!busy) {
       syncPriorityLimit();
       $("rename-event-btn").disabled = !state.workspace;
@@ -259,7 +296,9 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
 
   function applyWorkspace(savedWorkspace, preserveView = false, preserveForm = false) {
     newDraftDirty = false;
-    if (state.workspace && state.workspace.id !== savedWorkspace.id) { resetExpenseForm(); $("allocation-form").reset(); state.allocationDirty = false; resetScenarios(); }
+    if (state.workspace && state.workspace.id !== savedWorkspace.id) {
+      resetExpenseForm(); $("allocation-form").reset(); state.allocationDirty = false; resetScenarios();
+    }
     state.workspace = savedWorkspace;
     state.lastRequest = savedWorkspace.details;
     state.lastPlan = savedWorkspace.plan;
@@ -282,25 +321,41 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     state.events = events;
     const select = $("saved-event-select");
     clear(select);
-    select.append(h("option", { value: "", text: events.length ? "Choose a saved event" : "No saved events yet" }));
-    for (const event of events) select.append(h("option", { value: event.id, text: `${event.title} · ${fmtDate(event.event_date)}` }));
+    select.append(
+      h("option", { value: "", text: events.length ? "Choose a saved event" : "No saved events yet" })
+    );
+    for (const event of events) select.append(
+      h("option", { value: event.id, text: `${event.title} · ${fmtDate(event.event_date)}` })
+    );
     select.value = state.workspace ? state.workspace.id : "";
     document.dispatchEvent(new Event('planora:events'));
     return events;
   }
 
   async function refreshAfterSave() {
-    try { await refreshEvents(); } catch (err) { workspaceStatus("Your change was saved. The event list could not refresh.", err.message); }
+    try { await refreshEvents(); } catch (err) {
+      workspaceStatus("Your change was saved. The event list could not refresh.", err.message);
+    }
   }
 
-  function hasUnsavedDetails(ignoreQuoteDraft = false, ignoreGuestDraft = false, ignoreNegotiationDraft = false, ignoreCommandDraft = false, ignoreWebsiteDraft = false) {
+  function hasUnsavedDetails(
+    ignoreQuoteDraft = false,
+    ignoreGuestDraft = false,
+    ignoreNegotiationDraft = false,
+    ignoreCommandDraft = false,
+    ignoreWebsiteDraft = false
+  ) {
     if (!ignoreWebsiteDraft && state.websiteDirty) return true;
     if (!ignoreCommandDraft && state.commandDirty) return true;
     if ((!ignoreGuestDraft && state.guestDirty) || (!ignoreNegotiationDraft && state.negotiationDirty)) return true;
-    if (state.expenseDirty || state.allocationDirty || state.scenarioDirty || state.quoteDirty && !ignoreQuoteDraft) return true;
+    if (
+      state.expenseDirty || state.allocationDirty || state.scenarioDirty || state.quoteDirty && !ignoreQuoteDraft
+    ) return true;
     if (!state.workspace) return newDraftDirty;
     const details = readForm();
-    return Object.keys(details).some((key) => JSON.stringify(details[key]) !== JSON.stringify(state.workspace.details[key]));
+    return Object.keys(details).some(
+      (key) => JSON.stringify(details[key]) !== JSON.stringify(state.workspace.details[key])
+    );
   }
 
   async function workspaceAction(action) {
@@ -317,19 +372,25 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
     workspaceStatus("Opening saved event…");
     const res = await api(`/api/events/${encodeURIComponent(id)}`, undefined, "GET");
     applyWorkspace(await res.json());
-    workspaceStatus(`Opened saved event, revision ${state.workspace.revision}. Plan last built ${new Date(state.workspace.generated_at).toLocaleString()}.`);
+    workspaceStatus(
+      `Opened saved event, revision ${state.workspace.revision}. Plan last built ${new Date(state.workspace.generated_at).toLocaleString()}.`
+    );
   }
 
   $("saved-event-select").addEventListener("change", () => {
     const id = $("saved-event-select").value;
     if (!id) { $("saved-event-select").value = state.workspace ? state.workspace.id : ""; return; }
-    if (hasUnsavedDetails() && !confirm("Discard unsaved form changes and open this event?")) { $("saved-event-select").value = state.workspace?.id || ""; return; }
+    if (hasUnsavedDetails() && !confirm("Discard unsaved form changes and open this event?")) {
+      $("saved-event-select").value = state.workspace?.id || ""; return;
+    }
     workspaceAction(() => openWorkspace(id));
   });
 
   $("refresh-events-btn").addEventListener("click", () => workspaceAction(async () => {
     const events = await refreshEvents();
-    workspaceStatus(events.length ? "Saved-event list refreshed." : "No saved events yet. Fill in the form to create one.");
+    workspaceStatus(
+      events.length ? "Saved-event list refreshed." : "No saved events yet. Fill in the form to create one."
+    );
   }));
 
   $("new-event-btn").addEventListener("click", () => {
@@ -349,16 +410,28 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   });
 
   $("rename-event-btn").addEventListener("click", () => workspaceAction(async () => {
-    const res = await api(`/api/events/${state.workspace.id}`, { revision: state.workspace.revision, title: form.elements.title.value.trim() }, "PATCH");
+    const res = await api(
+      `/api/events/${state.workspace.id}`,
+      { revision: state.workspace.revision, title: form.elements.title.value.trim() },
+      "PATCH"
+    );
     applyWorkspace(await res.json(), true, true);
     form.elements.title.value = state.workspace.details.title;
     workspaceStatus("Event name saved."); await refreshAfterSave();
   }));
 
   $("delete-event-btn").addEventListener("click", () => {
-    if (!state.workspace || !confirm(`Permanently delete '${state.workspace.plan.title}' and all its saved planning data?`)) return;
+    if (
+      !state.workspace || !confirm(
+        `Permanently delete '${state.workspace.plan.title}' and all its saved planning data?`
+      )
+    ) return;
     workspaceAction(async () => {
-      await api(`/api/events/${state.workspace.id}`, { revision: state.workspace.revision, confirm_id: state.workspace.id }, "DELETE");
+      await api(
+        `/api/events/${state.workspace.id}`,
+        { revision: state.workspace.revision, confirm_id: state.workspace.id },
+        "DELETE"
+      );
       state.workspace = state.lastRequest = state.lastPlan = null;
       resetExpenseForm();
       $("allocation-form").reset(); state.allocationDirty = false;
@@ -374,13 +447,26 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   async function saveProgress(checkbox, id, isTask) {
     const previous = !checkbox.checked;
     if (state.workspaceBusy) { checkbox.checked = previous; return; }
-    const tasks = new Set(state.workspace.tasks.filter((t) => t.completed && state.workspace.plan.timeline[t.milestone_index].category !== "event").map((t) => t.id));
-    const checks = new Set(state.workspace.vendors.flatMap((v) => v.checklist.filter((c) => c.completed).map((c) => c.id)));
+    const tasks = new Set(
+      state.workspace.tasks.filter(
+        (t) => t.completed && state.workspace.plan.timeline[t.milestone_index].category !== "event"
+      ).map((t) => t.id)
+    );
+    const checks = new Set(
+      state.workspace.vendors.flatMap((v) => v.checklist.filter((c) => c.completed).map((c) => c.id))
+    );
     const selected = isTask ? tasks : checks;
     if (checkbox.checked) selected.add(id); else selected.delete(id);
     setWorkspaceBusy(true); workspaceStatus("Saving checklist…");
     try {
-      const res = await api(`/api/events/${state.workspace.id}`, { revision: state.workspace.revision, progress: { completed_tasks: [...tasks], completed_checks: [...checks] } }, "PATCH");
+      const res = await api(
+        `/api/events/${state.workspace.id}`,
+        {
+          revision: state.workspace.revision,
+          progress: { completed_tasks: [...tasks], completed_checks: [...checks] }
+        },
+        "PATCH"
+      );
       applyWorkspace(await res.json(), true, true);
       workspaceStatus("Checklist saved.");
     } catch (err) {
@@ -391,15 +477,22 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
 
   $("import-event-btn").hidden = !saved;
   $("import-event-btn").addEventListener("click", () => {
-    if (!confirm("Import the last browser draft and matching checklist progress as a new saved event? Existing browser data will be kept. Unsaved form changes will be replaced.")) return;
+    if (
+      !confirm(
+        "Import the last browser draft and matching checklist progress as a new saved event? Existing browser data will be kept. Unsaved form changes will be replaced."
+      )
+    ) return;
     workspaceAction(async () => {
       const name = saved.title || saved.event_type.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase());
       const key = `${saved.event_type}|${saved.event_date}|${name}`;
       const timeline = store.get("eventra:done:" + key, []);
       const vendors = store.get("eventra:vendor:" + key, []);
-      if (!Array.isArray(timeline) || !Array.isArray(vendors)) throw new Error("Browser progress is damaged. The original data has been kept.");
+      if (!Array.isArray(timeline) || !Array.isArray(vendors)) throw new Error(
+        "Browser progress is damaged. The original data has been kept."
+      );
       const res = await api("/api/events", { details: saved, legacy_progress: { timeline, vendors } });
-      applyWorkspace(await res.json()); workspaceStatus("Browser draft imported. Original browser data kept.");
+      applyWorkspace(await res.json());
+      workspaceStatus("Browser draft imported. Original browser data kept.");
       await refreshAfterSave();
     });
   });
@@ -409,13 +502,40 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   state.booting = true;
   const wizard = mountWizard({readForm,showFormError});
   const shell = mountShell({wizard,selectTab,openWorkspace,workspaceAction,hasUnsavedDetails});
-  mountIntelligence({api,restoreForm,wizard,applyWorkspace,refreshAfterSave,setWorkspaceBusy,hasUnsavedDetails,workspaceStatus,go:shell.go});
+  mountIntelligence(
+    {
+      api,
+      restoreForm,
+      wizard,
+      applyWorkspace,
+      refreshAfterSave,
+      setWorkspaceBusy,
+      hasUnsavedDetails,
+      workspaceStatus,
+      go:shell.go
+    }
+  );
   mountDecisionComparison();
   const {resetChat} = mountCopilot({api,applyWorkspace,setWorkspaceBusy,workspaceStatus});
   mountCoordination({api,applyWorkspace,setWorkspaceBusy,saveProgress,go:shell.go,hasUnsavedDetails});
-  mountRescue({api,setWorkspaceBusy,hasUnsavedDetails,fillScenarioInputs,renderScenarioPreview,refreshScenarios});
-  mountQuoteComparison({api,setWorkspaceBusy,hasUnsavedDetails,fillScenarioInputs,renderScenarioPreview,refreshScenarios});
-  mountSignatureIntelligence({api,applyWorkspace,setWorkspaceBusy,hasUnsavedDetails,fillScenarioInputs,renderScenarioPreview,refreshScenarios,go:shell.go});
+  mountRescue(
+    {api,setWorkspaceBusy,hasUnsavedDetails,fillScenarioInputs,renderScenarioPreview,refreshScenarios}
+  );
+  mountQuoteComparison(
+    {api,setWorkspaceBusy,hasUnsavedDetails,fillScenarioInputs,renderScenarioPreview,refreshScenarios}
+  );
+  mountSignatureIntelligence(
+    {
+      api,
+      applyWorkspace,
+      setWorkspaceBusy,
+      hasUnsavedDetails,
+      fillScenarioInputs,
+      renderScenarioPreview,
+      refreshScenarios,
+      go:shell.go
+    }
+  );
   mountReadiness({api});
   mountMotion();
   mountDemo();
@@ -423,10 +543,14 @@ const {scenarioMessage,resetScenarios,showScenarioFields,renderScenarioChoices,r
   mountPortal();
   mountScrollStory();
   workspaceAction(async () => {
-    const selected = location.hash.match(/^#\/event\/([a-f0-9-]{36})\//i)?.[1] || store.get("eventra:selected-event", null);
+    const selected = location.hash.match(/^#\/event\/([a-f0-9-]{36})\//i)?.[1] || store.get(
+      "eventra:selected-event", null
+    );
     const events = await refreshEvents();
     if (selected && events.some((event) => event.id === selected)) await openWorkspace(selected);
-    else workspaceStatus(events.length ? "Choose an event to continue planning." : "No saved events yet. Save your first plan below.");
+    else workspaceStatus(
+      events.length ? "Choose an event to continue planning." : "No saved events yet. Save your first plan below."
+    );
   }).finally(()=>{state.booting=false;shell.route();});
 
 mountEventPortal();

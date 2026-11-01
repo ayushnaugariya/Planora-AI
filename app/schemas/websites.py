@@ -1,7 +1,7 @@
 """Separate private drafts and allowlisted public invitation contracts."""
 
 from datetime import date, datetime
-from typing import Literal
+from typing import Literal, Self
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -18,7 +18,7 @@ Artwork = Literal["none", "botanical", "celebration", "venue"]
 class WebsiteText(StrictInput):
     @field_validator("*", mode="before")
     @classmethod
-    def clean(cls, value):
+    def clean(cls, value: object) -> object:
         if isinstance(value, str):
             value.encode("utf-8")
             return clean_text(value)
@@ -63,7 +63,7 @@ class WebsiteConfig(WebsiteText):
 
     @field_validator("timezone")
     @classmethod
-    def valid_zone(cls, value):
+    def valid_zone(cls, value: str) -> str:
         try:
             ZoneInfo(value)
         except (ZoneInfoNotFoundError, ValueError) as exc:
@@ -71,7 +71,7 @@ class WebsiteConfig(WebsiteText):
         return value
 
     @model_validator(mode="after")
-    def consistent_time(self):
+    def consistent_time(self) -> Self:
         if self.start_at and self.start_at.astimezone(ZoneInfo(self.timezone)).date() != self.event_date:
             raise ValueError("Start time must match the event date in the selected timezone")
         return self
@@ -154,7 +154,7 @@ class ApprovalRequest(StrictInput):
 
     @field_validator("approved", mode="before")
     @classmethod
-    def human_approval(cls, value):
+    def human_approval(cls, value: object) -> object:
         if value is not True:
             raise ValueError("Explicit human approval is required")
         return value
@@ -182,7 +182,7 @@ class PublicResponse(WebsiteText):
 
     @field_validator("email")
     @classmethod
-    def email_format(cls, value):
+    def email_format(cls, value: str | None) -> str | None:
         return GuestValues._email(value)
 
 

@@ -15,7 +15,9 @@ router = APIRouter(
 
 
 @router.post("", response_model=NegotiationResult)
-def generate_message(event_id: UUID, vendor_id: UUID, body: NegotiationInput, request: Request, owner: Owner):
+def generate_message(
+    event_id: UUID, vendor_id: UUID, body: NegotiationInput, request: Request, owner: Owner
+) -> NegotiationResult:
     return generate(
         current(request, owner, event_id, body.revision),
         vendor_id,
@@ -25,10 +27,12 @@ def generate_message(event_id: UUID, vendor_id: UUID, body: NegotiationInput, re
 
 
 @router.get("/draft", response_model=NegotiationDraft | None)
-def get_draft(event_id: UUID, vendor_id: UUID, request: Request, owner: Owner):
+def get_draft(event_id: UUID, vendor_id: UUID, request: Request, owner: Owner) -> NegotiationDraft | None:
     return negotiations.read(repository(request), owner, event_id, vendor_id)
 
 
 @router.put("/draft", response_model=NegotiationDraft)
-def save_draft(event_id: UUID, vendor_id: UUID, body: DraftSave, request: Request, owner: Owner):
+def save_draft(
+    event_id: UUID, vendor_id: UUID, body: DraftSave, request: Request, owner: Owner
+) -> NegotiationDraft:
     return negotiations.save(repository(request), owner, event_id, vendor_id, body)

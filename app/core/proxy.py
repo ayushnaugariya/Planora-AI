@@ -2,11 +2,12 @@
 
 import ipaddress
 from collections.abc import Mapping
+from typing import Self
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 
-def address(value: str):
+def address(value: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address:
     """Accept bare IP literals only; normalize IPv4-mapped IPv6 quota keys."""
     if "%" in value:
         raise ValueError("Scoped addresses are not supported")
@@ -33,12 +34,12 @@ class ProxyPolicy:
             raise ValueError("TRUSTED_PROXY_CIDRS cannot trust every address")
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str]):
+    def from_env(cls, env: Mapping[str, str]) -> Self:
         if env.get("TRUST_PROXY", "0") not in ("", "0"):
             raise ValueError("Remove TRUST_PROXY; configure explicit TRUSTED_PROXY_CIDRS instead")
         return cls(env.get("TRUSTED_PROXY_CIDRS", ""))
 
-    def trusted(self, host) -> bool:
+    def trusted(self, host: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
         return any(host in network for network in self.networks)
 
     def resolve(self, scope: Scope) -> tuple[str, str]:

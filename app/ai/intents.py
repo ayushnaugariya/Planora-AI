@@ -4,10 +4,11 @@ import re
 from decimal import Decimal
 
 from app.schemas.budget import cents
+from app.schemas.workspaces import EventWorkspace
 from app.services.budget import effective_cost
 
 
-def resolve(question, workspace):
+def resolve(question: str, workspace: EventWorkspace) -> tuple[dict[str, object] | None, str | None]:
     """Return a new supported command or a specific request for missing facts.
 
     Legacy parsing and Gemini output validation remain in workspace.interpret.

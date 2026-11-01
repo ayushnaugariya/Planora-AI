@@ -3,7 +3,8 @@
 import logging
 
 from app.ai import gemini as ai
-from app.schemas.command_center import CopilotOrder
+from app.ai.gemini import LLM
+from app.schemas.command_center import CopilotOrder, DayRecommendation
 
 log = logging.getLogger("eventra.event_day")
 SYSTEM = (
@@ -15,7 +16,9 @@ SYSTEM = (
 )
 
 
-def order(revision, question, candidates, client):
+def order(
+    revision: int, question: str, candidates: list[DayRecommendation], client: LLM | None
+) -> tuple[list[str], str]:
     ids = [c.id for c in candidates]
     if client is None or not ids:
         return ids, "offline"

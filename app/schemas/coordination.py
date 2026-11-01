@@ -16,5 +16,5 @@ class VendorUpdate(StrictInput):
 
     @field_validator("name", "contact", mode="before")
     @classmethod
-    def _clean(cls, value):
+    def _clean(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value

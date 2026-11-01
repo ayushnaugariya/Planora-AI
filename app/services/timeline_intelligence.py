@@ -1,14 +1,16 @@
 """Read-only dependency propagation, without invented durations or mutation authority."""
 
-from datetime import timedelta
+from datetime import date, timedelta
+from uuid import UUID
 
 from fastapi import HTTPException
 
-from app.schemas.intelligence import DelayAnalysis, DelayedTask
+from app.schemas.intelligence import DelayAnalysis, DelayedTask, DelayRequest
+from app.schemas.workspaces import EventWorkspace
 from app.services.scenarios import dependency_reasons
 
 
-def delay_analysis(base, body):
+def delay_analysis(base: EventWorkspace, body: DelayRequest) -> DelayAnalysis:
     tasks = {task.id: task for task in base.tasks}
     if body.task_id not in tasks:
         raise HTTPException(status_code=404, detail="Task does not belong to this event")
@@ -28,7 +30,7 @@ def delay_analysis(base, body):
     if not any(task.depends_on for task in tasks.values()):
         assumptions.append("No prerequisite links are recorded; downstream impacts may be missing.")
 
-    def due(key):
+    def due(key: UUID) -> date:
         if key in proposed:
             return proposed[key]
         task = tasks[key]

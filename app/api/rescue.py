@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/events/{event_id}/rescue", tags=["rescue"])
 
 
 @router.post("", response_model=RescueAssessment, status_code=201)
-def assess_incident(event_id: UUID, body: RescueRequest, request: Request, owner: Owner):
+def assess_incident(event_id: UUID, body: RescueRequest, request: Request, owner: Owner) -> RescueAssessment:
     base = current(request, owner, event_id, body.revision)
     result = assess(base, body)
     saved = repository(request).create_scenario_batch(

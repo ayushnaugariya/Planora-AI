@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID
 
 from pydantic import BeforeValidator, Field, field_validator, model_validator
@@ -18,7 +18,7 @@ class BudgetReduction(BudgetInput):
     allocations: list[Allocation] | None = Field(default=None, max_length=30)
 
     @model_validator(mode="after")
-    def _reduction(self):
+    def _reduction(self) -> Self:
         if (self.amount is None) == (self.percent is None) or self.amount == 0:
             raise ValueError("Provide exactly one positive reduction amount or percentage")
         return self
@@ -42,7 +42,7 @@ class VendorCancellation(BudgetInput):
     replacement_confirmed: bool = Field(default=False, strict=True)
 
     @model_validator(mode="after")
-    def _combined_cost(self):
+    def _combined_cost(self) -> Self:
         if (self.cancellation_fee or 0) + (self.replacement_cost or 0) > 100_000_000:
             raise ValueError("Combined replacement and cancellation costs exceed the supported amount")
         return self
@@ -63,7 +63,7 @@ class AdditionalFunction(BudgetInput):
 
     @field_validator("name", mode="before")
     @classmethod
-    def _name(cls, value):
+    def _name(cls, value: object) -> object:
         return clean_text(value) if isinstance(value, str) else value
 
 

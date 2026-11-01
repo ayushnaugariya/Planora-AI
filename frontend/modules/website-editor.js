@@ -4,72 +4,592 @@ import {renderEventSite,themeNames} from './event-site-renderer.js';
 
 export function mountWebsiteEditor({api,setWorkspaceBusy,hasUnsavedDetails}){
   const root=$('panel-website'),field=(text,el)=>h('div',{class:'field'},h('label',{htmlFor:el.id,text}),el);
-  const text=(id,maxLength,extra={})=>h('input',{id,maxLength,...extra}),area=(id,maxLength)=>h('textarea',{id,maxLength,rows:3});
-  const button=(id,title,fn)=>{const el=h('button',{id:id||undefined,type:'button',class:'ghost',text:title});el.addEventListener('click',fn);return el;};
+  const text=(id,maxLength,extra={})=>h('input',{id,maxLength,...extra}),
+  area=(id,maxLength)=>h('textarea',{id,maxLength,rows:3});
+  const button=(id,title,fn)=>{
+    const el=h('button',{id:id||undefined,type:'button',class:'ghost',text:title});
+    el.addEventListener('click',fn);
+    return el;
+  };
   const select=(id,options)=>h('select',{id},options.map(([value,title])=>h('option',{value,text:title})));
-  const status=h('p',{id:'website-status',role:'status'}),error=h('p',{id:'website-error',class:'error',role:'alert',hidden:true}),link=text('website-public-url',500,{readOnly:true});
-  const open=h('a',{id:'website-open',class:'text-link',target:'_blank',rel:'noopener noreferrer',text:'Open published invitation ↗',hidden:true});
-  const reopen=button('website-reopen','Reopen saved draft',()=>{if(state.websiteDirty&&!confirm('Replace your unsaved website edits with the saved draft?'))return;load(true);});
-  const copy=button('website-copy-url','Copy shareable link',async()=>{if(!data?.public_path)return;try{await navigator.clipboard.writeText(link.value);status.textContent='Invitation link copied. Share it only with the people you intend.';}catch{link.focus();link.select();status.textContent='Select and copy this link manually.';}});
-  root.append(h('section',{class:'surface'},h('p',{class:'eyebrow',text:'YOUR OCCASION · A PLACE TO INVITE'}),h('h3',{text:'A beautiful invitation. Your details, your choice.'}),h('p',{class:'muted',text:'Start with your saved event, choose a design, and review exactly what you want to share. Draft changes stay private until you explicitly publish them. Anyone with the published link can view its approved information.'}),status,error,field('Stable public link (available after saving a draft)',link),h('div',{class:'people-actions'},copy,open,reopen)));
+  const status=h('p',{id:'website-status',role:'status'}),
+  error=h('p',{id:'website-error',class:'error',role:'alert',hidden:true}),
+  link=text('website-public-url',500,{readOnly:true});
+  const open=h(
+    'a',
+    {
+      id:'website-open',
+      class:'text-link',
+      target:'_blank',
+      rel:'noopener noreferrer',
+      text:'Open published invitation ↗',
+      hidden:true
+    }
+  );
+  const reopen=button(
+    'website-reopen',
+    'Reopen saved draft',
+    ()=>{
+      if(state.websiteDirty&&!confirm('Replace your unsaved website edits with the saved draft?'))return;
+      load(true);
+    }
+  );
+  const copy=button(
+    'website-copy-url',
+    'Copy shareable link',
+    async()=>{
+      if(!data?.public_path)return;
+      try{
+        await navigator.clipboard.writeText(link.value);
+        status.textContent='Invitation link copied. Share it only with the people you intend.';
+      }catch{link.focus();link.select();status.textContent='Select and copy this link manually.';}
+    }
+  );
+  root.append(
+    h(
+      'section',
+      {class:'surface'},
+      h('p',{class:'eyebrow',text:'YOUR OCCASION · A PLACE TO INVITE'}),
+      h('h3',{text:'A beautiful invitation. Your details, your choice.'}),
+      h(
+        'p',
+        {
+          class:'muted',
+          text:'Start with your saved event, choose a design, and review exactly what you want to share. Draft changes stay private until you explicitly publish them. Anyone with the published link can view its approved information.'
+        }
+      ),
+      status,
+      error,
+      field('Stable public link (available after saving a draft)',link),
+      h('div',{class:'people-actions'},copy,open,reopen)
+    )
+  );
   let data=null,context='',loaded=false,token=0,dispose=null,previewHash=null,suggested=[],pending=new Map();
-  const theme=select('website-theme',Object.entries(themeNames)),accent=text('website-accent',7,{type:'color'});
+  const theme=select('website-theme',Object.entries(themeNames)),
+  accent=text('website-accent',7,{type:'color'});
   const gallery=h('div',{class:'website-theme-gallery'});
   for(const [value,title] of Object.entries(themeNames)){
-    const b=button('',title,()=>{theme.value=value;mark();sync();});b.dataset.websiteTheme=value;b.className='website-theme-card';
-    b.append(h('span',{text:{ethereal:'Soft arches. Quiet romance.',modern_minimal:'Space, type and intention.',celebration:'Colour, joy and a little sparkle.',editorial_luxe:'A confident evening edition.'}[value]}));gallery.append(b);
+    const b=button('',title,()=>{theme.value=value;mark();sync();});
+    b.dataset.websiteTheme=value;
+    b.className='website-theme-card';
+    b.append(
+      h(
+        'span',
+        {
+          text:{
+            ethereal:'Soft arches. Quiet romance.',
+            modern_minimal:'Space, type and intention.',
+            celebration:'Colour, joy and a little sparkle.',
+            editorial_luxe:'A confident evening edition.'
+          }[value]
+        }
+      )
+    );
+    gallery.append(b);
   }
-  const title=text('website-title',120,{required:true}),subtitle=text('website-subtitle',160),date=text('website-date',10,{type:'date',required:true}),start=text('website-start',30,{type:'datetime-local'}),zone=text('website-timezone',80,{required:true});
-  const welcome=text('website-welcome',160),invitation=area('website-invitation',1200);invitation.required=true;invitation.minLength=2;
-  const description=area('website-description',1000),hosts=text('website-hosts',160),venue=text('website-venue',160),address=text('website-address',300),city=text('website-city',60),dress=text('website-dress',240),instructions=area('website-rsvp-instructions',300);
-  const cover=select('website-cover',[['none','Typography only'],['botanical','Botanical illustration'],['celebration','Celebration illustration'],['venue','Architectural illustration']]);
-  const imageChoices=['botanical','celebration','venue'].map(key=>{const el=h('input',{id:`website-gallery-${key}`,type:'checkbox',value:key});return [key,el];});
-  const visibility={};for(const [key,name] of [['show_hosts','Show host names'],['show_venue','Show venue and address'],['show_schedule','Show selected schedule'],['show_dress_code','Show dress code'],['show_gallery','Show selected artwork gallery'],['rsvp_enabled','Enable public RSVP'],['rsvp_email_required','Require an email for public responses']])visibility[key]=h('input',{id:`website-${key}`,type:'checkbox','aria-label':name});
-  const checks=h('div',{class:'website-checks'});for(const [key,input] of Object.entries(visibility))checks.append(h('label',{},input,{'show_hosts':'Show host names','show_venue':'Show venue and address','show_schedule':'Show selected schedule','show_dress_code':'Show dress code','show_gallery':'Show selected artwork gallery','rsvp_enabled':'Enable public RSVP','rsvp_email_required':'Require an email for public responses'}[key]));
+  const title=text('website-title',120,{required:true}),
+  subtitle=text('website-subtitle',160),
+  date=text('website-date',10,{type:'date',required:true}),
+  start=text('website-start',30,{type:'datetime-local'}),
+  zone=text('website-timezone',80,{required:true});
+  const welcome=text('website-welcome',160),
+  invitation=area('website-invitation',1200);
+  invitation.required=true;
+  invitation.minLength=2;
+  const description=area('website-description',1000),
+  hosts=text('website-hosts',160),
+  venue=text('website-venue',160),
+  address=text('website-address',300),
+  city=text('website-city',60),
+  dress=text('website-dress',240),
+  instructions=area('website-rsvp-instructions',300);
+  const cover=select(
+    'website-cover',
+    [
+      ['none','Typography only'],
+      ['botanical','Botanical illustration'],
+      ['celebration','Celebration illustration'],
+      ['venue','Architectural illustration']
+    ]
+  );
+  const imageChoices=['botanical','celebration','venue'].map(
+    key=>{const el=h('input',{id:`website-gallery-${key}`,type:'checkbox',value:key});return [key,el];}
+  );
+  const visibility={};
+  for(
+    const [key,name] of [
+      ['show_hosts','Show host names'],
+      ['show_venue','Show venue and address'],
+      ['show_schedule','Show selected schedule'],
+      ['show_dress_code','Show dress code'],
+      ['show_gallery','Show selected artwork gallery'],
+      ['rsvp_enabled','Enable public RSVP'],
+      ['rsvp_email_required','Require an email for public responses']
+    ]
+  )visibility[key]=h('input',{id:`website-${key}`,type:'checkbox','aria-label':name});
+  const checks=h('div',{class:'website-checks'});
+  for(const [key,input] of Object.entries(visibility))checks.append(
+    h(
+      'label',
+      {},
+      input,
+      {
+        'show_hosts':'Show host names',
+        'show_venue':'Show venue and address',
+        'show_schedule':'Show selected schedule',
+        'show_dress_code':'Show dress code',
+        'show_gallery':'Show selected artwork gallery',
+        'rsvp_enabled':'Enable public RSVP',
+        'rsvp_email_required':'Require an email for public responses'
+      }[key]
+    )
+  );
   const max=text('website-max-attendees',2,{type:'number',min:1,max:21,step:1,required:true});
-  const schedule=h('div',{id:'website-schedule-editor'}),importList=h('div',{id:'website-schedule-suggestions',class:'website-checks'});let scheduleRows=[];
+  const schedule=h('div',{id:'website-schedule-editor'}),
+  importList=h('div',{id:'website-schedule-suggestions',class:'website-checks'});
+  let scheduleRows=[];
   function addSchedule(value={title:'',date:date.value,start_at:null}){
     if(scheduleRows.length>=30){fail(Error('Use at most 30 public schedule entries.'));return;}
-    const suffix=crypto.randomUUID(),name=text(`website-schedule-title-${suffix}`,120,{required:true,value:value.title}),day=text(`website-schedule-date-${suffix}`,10,{type:'date',required:true,value:value.date}),clock=text(`website-schedule-time-${suffix}`,30,{type:'datetime-local',value:local(value.start_at)});
-    const row={name,day,clock,original:value.start_at};row.el=h('div',{class:'website-schedule-row'},field('Schedule title',name),field('Date',day),field('Start (optional, browser timezone)',clock),button('','Remove entry',()=>{row.el.remove();scheduleRows=scheduleRows.filter(r=>r!==row);mark();}));scheduleRows.push(row);schedule.append(row.el);
+    const suffix=crypto.randomUUID(),
+    name=text(`website-schedule-title-${suffix}`,120,{required:true,value:value.title}),
+    day=text(`website-schedule-date-${suffix}`,10,{type:'date',required:true,value:value.date}),
+    clock=text(`website-schedule-time-${suffix}`,30,{type:'datetime-local',value:local(value.start_at)});
+    const row={name,day,clock,original:value.start_at};
+    row.el=h(
+      'div',
+      {class:'website-schedule-row'},
+      field('Schedule title',name),
+      field('Date',day),
+      field('Start (optional, browser timezone)',clock),
+      button('','Remove entry',()=>{row.el.remove();scheduleRows=scheduleRows.filter(r=>r!==row);mark();})
+    );
+    scheduleRows.push(row);
+    schedule.append(row.el);
   }
   const add=button('website-add-schedule','Add a schedule entry',()=>{addSchedule();mark();});
   const importSchedule=button('website-import-schedule','Add selected saved operations',()=>{
-    for(const input of importList.querySelectorAll('input:checked')){const item=suggested[Number(input.value)];if(!scheduleRows.some(r=>r.name.value===item.title&&r.day.value===item.date&&r.clock.value===local(item.start_at)))addSchedule(item);}mark();
+    for(const input of importList.querySelectorAll('input:checked')){
+      const item=suggested[Number(input.value)];
+      if(
+        !scheduleRows.some(
+          r=>r.name.value===item.title&&r.day.value===item.date&&r.clock.value===local(item.start_at)
+        )
+      )addSchedule(item);
+    }mark();
   });
-  const save=h('button',{id:'website-save',type:'submit',class:'primary',text:'Save private draft'}),preview=button('website-preview','Preview this design',previewDraft);
-  const form=h('form',{id:'website-editor',class:'surface'},h('p',{class:'eyebrow',text:'01 / MAKE IT YOURS'}),h('h3',{text:'An invitation with your own character.'}),gallery,h('div',{class:'people-grid'},field('Design theme',theme),field('Accent colour',accent),field('Event title',title),field('Subtitle',subtitle),field('Event date',date),field('Start time (optional, browser timezone)',start),field('Display timezone (IANA)',zone)),h('p',{class:'muted',text:`Time editors use your browser timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}). The invitation displays the saved instant in the selected event timezone. Date-only invitations never invent a start time.`}),field('Welcome heading',welcome),field('Invitation message',invitation),field('Event introduction',description),h('div',{class:'people-grid'},field('Host names',hosts),field('Venue name (confirmed by you)',venue),field('Venue address',address),field('City',city),field('Dress code',dress),field('Maximum party size including respondent (1–21)',max)),field('RSVP instructions',instructions),h('h4',{text:'Privacy and visibility'}),checks,h('p',{class:'muted',text:'Public RSVPs are unverified, create-only responses in your existing Guest Manager. Matching parties are left unchanged; this is not guest identity verification. No budget or planning headcount changes automatically.'}),h('h4',{text:'A public schedule, chosen by you'}),h('p',{class:'muted',text:'Select only items appropriate for guests. Owners, internal notes, incidents and task IDs are never imported.'}),importList,importSchedule,schedule,add,field('Cover artwork',cover),h('div',{class:'website-checks'},imageChoices.map(([key,el])=>h('label',{},el,`${key} illustration`))),h('p',{class:'muted',text:'Illustrations are bundled with Planora. Personal photo uploads and remote image URLs are not supported.'}),h('div',{class:'people-actions'},save,preview));
-  form.addEventListener('submit',event=>{event.preventDefault();saveDraft();});form.addEventListener('input',mark);form.addEventListener('change',mark);
+  const save=h('button',{id:'website-save',type:'submit',class:'primary',text:'Save private draft'}),
+  preview=button('website-preview','Preview this design',previewDraft);
+  const form=h(
+    'form',
+    {id:'website-editor',class:'surface'},
+    h('p',{class:'eyebrow',text:'01 / MAKE IT YOURS'}),
+    h('h3',{text:'An invitation with your own character.'}),
+    gallery,
+    h(
+      'div',
+      {class:'people-grid'},
+      field('Design theme',theme),
+      field('Accent colour',accent),
+      field('Event title',title),
+      field('Subtitle',subtitle),
+      field('Event date',date),
+      field('Start time (optional, browser timezone)',start),
+      field('Display timezone (IANA)',zone)
+    ),
+    h(
+      'p',
+      {
+        class:'muted',
+        text:`Time editors use your browser timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}). The invitation displays the saved instant in the selected event timezone. Date-only invitations never invent a start time.`
+      }
+    ),
+    field('Welcome heading',welcome),
+    field('Invitation message',invitation),
+    field('Event introduction',description),
+    h(
+      'div',
+      {class:'people-grid'},
+      field('Host names',hosts),
+      field('Venue name (confirmed by you)',venue),
+      field('Venue address',address),
+      field('City',city),
+      field('Dress code',dress),
+      field('Maximum party size including respondent (1–21)',max)
+    ),
+    field('RSVP instructions',instructions),
+    h('h4',{text:'Privacy and visibility'}),
+    checks,
+    h(
+      'p',
+      {
+        class:'muted',
+        text:'Public RSVPs are unverified, create-only responses in your existing Guest Manager. Matching parties are left unchanged; this is not guest identity verification. No budget or planning headcount changes automatically.'
+      }
+    ),
+    h('h4',{text:'A public schedule, chosen by you'}),
+    h(
+      'p',
+      {
+        class:'muted',
+        text:'Select only items appropriate for guests. Owners, internal notes, incidents and task IDs are never imported.'
+      }
+    ),
+    importList,
+    importSchedule,
+    schedule,
+    add,
+    field('Cover artwork',cover),
+    h('div',{class:'website-checks'},imageChoices.map(([key,el])=>h('label',{},el,`${key} illustration`))),
+    h(
+      'p',
+      {
+        class:'muted',
+        text:'Illustrations are bundled with Planora. Personal photo uploads and remote image URLs are not supported.'
+      }
+    ),
+    h('div',{class:'people-actions'},save,preview)
+  );
+  form.addEventListener('submit',event=>{event.preventDefault();saveDraft();});
+  form.addEventListener('input',mark);
+  form.addEventListener('change',mark);
   const tone=select('website-tone',[['warm','Warm'],['formal','Formal'],['playful','Playful']]);
   const generate=button('website-generate-copy','Suggest invitation copy',generateCopy);
-  form.append(h('hr'),h('h4',{text:'A little help with the words'}),field('Invitation tone',tone),h('p',{class:'muted',text:'Gemini can choose structured copy variants; Planora inserts your reviewed event name and date. No private planning notes, guest data, venue details or raw prompts go to the provider. Built-in wording works without AI.'}),generate);
+  form.append(
+    h('hr'),
+    h('h4',{text:'A little help with the words'}),
+    field('Invitation tone',tone),
+    h(
+      'p',
+      {
+        class:'muted',
+        text:'Gemini can choose structured copy variants; Planora inserts your reviewed event name and date. No private planning notes, guest data, venue details or raw prompts go to the provider. Built-in wording works without AI.'
+      }
+    ),
+    generate
+  );
   root.append(form);
-  const previewRoot=h('div',{id:'website-design-preview'}),disclosure=h('div',{id:'website-public-disclosure'}),approval=h('input',{id:'website-publication-approval',type:'checkbox'});
-  const publish=button('website-publish','Approve & publish invitation',()=>publishDraft()),unpublish=button('website-unpublish','Unpublish invitation',unpublishDraft);
+  const previewRoot=h('div',{id:'website-design-preview'}),
+  disclosure=h('div',{id:'website-public-disclosure'}),
+  approval=h('input',{id:'website-publication-approval',type:'checkbox'});
+  const publish=button('website-publish','Approve & publish invitation',()=>publishDraft()),
+  unpublish=button('website-unpublish','Unpublish invitation',unpublishDraft);
   publish.className='primary';approval.addEventListener('change',sync);
-  root.append(h('section',{class:'surface'},h('p',{class:'eyebrow',text:'02 / REVIEW BEFORE YOU SHARE'}),h('h3',{text:'This is the invitation your guests will see.'}),h('p',{class:'muted',text:'Save and preview the current draft before publishing. Preview forms cannot send RSVPs. Updating the published page requires another explicit approval.'}),disclosure,h('label',{class:'website-publication-check'},approval,'I reviewed this preview and approve making these details publicly accessible.'),h('div',{class:'people-actions'},publish,unpublish)),previewRoot);
+  root.append(
+    h(
+      'section',
+      {class:'surface'},
+      h('p',{class:'eyebrow',text:'02 / REVIEW BEFORE YOU SHARE'}),
+      h('h3',{text:'This is the invitation your guests will see.'}),
+      h(
+        'p',
+        {
+          class:'muted',
+          text:'Save and preview the current draft before publishing. Preview forms cannot send RSVPs. Updating the published page requires another explicit approval.'
+        }
+      ),
+      disclosure,
+      h(
+        'label',
+        {class:'website-publication-check'},
+        approval,
+        'I reviewed this preview and approve making these details publicly accessible.'
+      ),
+      h('div',{class:'people-actions'},publish,unpublish)
+    ),
+    previewRoot
+  );
   function mark(){state.websiteDirty=true;previewHash=null;approval.checked=false;pending.clear();sync();}
   function fail(ex){error.textContent=ex.message||String(ex);error.hidden=false;}
-  function local(iso){if(!iso)return '';const d=new Date(iso);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
-  function instant(el,original){if(!el.value)return null;if(original&&el.value===local(original))return original;const d=new Date(el.value);if(!Number.isFinite(d.getTime())||local(d.toISOString())!==el.value.slice(0,16))throw Error('Choose a valid local time, accounting for daylight-saving changes.');return d.toISOString();}
-  function config(){const value={...data.draft,theme:theme.value,accent:accent.value,title:title.value,subtitle:subtitle.value,event_date:date.value,start_at:instant(start,data.draft.start_at),timezone:zone.value,welcome:welcome.value,invitation:invitation.value,description:description.value,hosts:hosts.value,venue_name:venue.value,venue_address:address.value,city:city.value,dress_code:dress.value,rsvp_instructions:instructions.value,max_attendees:Number(max.value),cover:cover.value,gallery:imageChoices.filter(([,el])=>el.checked).map(([key])=>key),schedule:scheduleRows.map(r=>({title:r.name.value,date:r.day.value,start_at:instant(r.clock,r.original)}))};for(const [key,el]of Object.entries(visibility))value[key]=el.checked;return value;}
-  function fill(value){for(const [el,key]of [[theme,'theme'],[accent,'accent'],[title,'title'],[subtitle,'subtitle'],[date,'event_date'],[zone,'timezone'],[welcome,'welcome'],[invitation,'invitation'],[description,'description'],[hosts,'hosts'],[venue,'venue_name'],[address,'venue_address'],[city,'city'],[dress,'dress_code'],[instructions,'rsvp_instructions'],[max,'max_attendees'],[cover,'cover']])el.value=value[key];start.value=local(value.start_at);for(const [key,el]of Object.entries(visibility))el.checked=value[key];for(const [key,el]of imageChoices)el.checked=value.gallery.includes(key);clear(schedule);scheduleRows=[];for(const item of value.schedule)addSchedule(item);}
-  function sync(){const busy=state.workspaceBusy;publish.disabled=busy||!loaded||!data?.revision||state.websiteDirty||!previewHash||!approval.checked;unpublish.disabled=busy||!data?.published;save.disabled=preview.disabled=generate.disabled=busy||!loaded;copy.disabled=!data?.public_path;for(const b of gallery.querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.websiteTheme===theme.value));}}
-  function meta(){link.value=data?.public_path?location.origin+data.public_path:'';open.hidden=!data?.published;if(data?.published)open.href=data.public_path;status.textContent=data?`${data.published?'Published':'Private draft'} · Website version ${data.revision}. ${data.stale?'The event changed since this draft was saved; review its date and details. ':''}Private edits never update the published snapshot automatically.`:'Open a saved event to create an invitation.';sync();}
-  function accept(result,replace=true){data=result;loaded=true;if(replace){fill(data.draft);state.websiteDirty=false;}previewHash=null;approval.checked=false;pending.clear();meta();}
-  async function load(replace=false){if(!state.workspace)return;const id=state.workspace.id,current=++token;root.setAttribute('aria-busy','true');status.textContent='Opening your private invitation draft…';try{const result=await(await api(`/api/events/${id}/website`,undefined,'GET')).json();if(current!==token||state.workspace?.id!==id)return;if(state.websiteDirty&&!replace){status.textContent='Saved state changed or was refreshed; your edits are retained. Reopen the saved draft to refresh its version before saving.';return;}suggested=result.suggested_schedule;clear(importList);for(const [index,item]of suggested.entries())importList.append(h('label',{},h('input',{type:'checkbox',value:index}),`${item.title} · ${item.date}`));if(!suggested.length)importList.append(h('p',{class:'muted',text:'No saved operational start times. Existing event-day milestones are included below; add further public details as needed.'}));accept(result);error.hidden=true;}
-    catch(ex){if(current===token)fail(ex);}finally{if(current===token){root.removeAttribute('aria-busy');sync();}}}
-  async function action(kind,fn){if(!state.workspace||state.workspaceBusy||!loaded)return;if(kind!=='unpublish'&&hasUnsavedDetails(false,false,false,false,true)){fail(Error('Save or cancel other workspace edits first.'));return;}const id=state.workspace.id;setWorkspaceBusy(true);error.hidden=true;try{await fn(id);}catch(ex){fail(ex);status.textContent='Action not confirmed. Your inputs are retained; reopen after a revision conflict.';}finally{setWorkspaceBusy(false);sync();}}
-  const requestId=kind=>{if(!pending.has(kind))pending.set(kind,crypto.randomUUID());return pending.get(kind);};
+  function local(iso){
+    if(!iso)return '';
+    const d=new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  function instant(el,original){
+    if(!el.value)return null;
+    if(original&&el.value===local(original))return original;
+    const d=new Date(el.value);
+    if(!Number.isFinite(d.getTime())||local(d.toISOString())!==el.value.slice(0,16))throw Error(
+      'Choose a valid local time, accounting for daylight-saving changes.'
+    );
+    return d.toISOString();
+  }
+  function config(){
+    const value={
+      ...data.draft,
+      theme:theme.value,
+      accent:accent.value,
+      title:title.value,
+      subtitle:subtitle.value,
+      event_date:date.value,
+      start_at:instant(start,data.draft.start_at),
+      timezone:zone.value,
+      welcome:welcome.value,
+      invitation:invitation.value,
+      description:description.value,
+      hosts:hosts.value,
+      venue_name:venue.value,
+      venue_address:address.value,
+      city:city.value,
+      dress_code:dress.value,
+      rsvp_instructions:instructions.value,
+      max_attendees:Number(max.value),
+      cover:cover.value,
+      gallery:imageChoices.filter(([,el])=>el.checked).map(([key])=>key),
+      schedule:scheduleRows.map(
+        r=>({title:r.name.value,date:r.day.value,start_at:instant(r.clock,r.original)})
+      )
+    };
+    for(const [key,el]of Object.entries(visibility))value[key]=el.checked;
+    return value;
+  }
+  function fill(value){
+    for(
+      const [el,key]of [
+        [theme,'theme'],
+        [accent,'accent'],
+        [title,'title'],
+        [subtitle,'subtitle'],
+        [date,'event_date'],
+        [zone,'timezone'],
+        [welcome,'welcome'],
+        [invitation,'invitation'],
+        [description,'description'],
+        [hosts,'hosts'],
+        [venue,'venue_name'],
+        [address,'venue_address'],
+        [city,'city'],
+        [dress,'dress_code'],
+        [instructions,'rsvp_instructions'],
+        [max,'max_attendees'],
+        [cover,'cover']
+      ]
+    )el.value=value[key];
+    start.value=local(value.start_at);
+    for(const [key,el]of Object.entries(visibility))el.checked=value[key];
+    for(const [key,el]of imageChoices)el.checked=value.gallery.includes(key);
+    clear(schedule);
+    scheduleRows=[];
+    for(const item of value.schedule)addSchedule(item);
+  }
+  function sync(){
+    const busy=state.workspaceBusy;
+    publish.disabled=busy||!loaded||!data?.revision||state.websiteDirty||!previewHash||!approval.checked;
+    unpublish.disabled=busy||!data?.published;
+    save.disabled=preview.disabled=generate.disabled=busy||!loaded;
+    copy.disabled=!data?.public_path;
+    for(const b of gallery.querySelectorAll('button')){
+      b.setAttribute('aria-pressed',String(b.dataset.websiteTheme===theme.value));
+    }
+  }
+  function meta(){
+    link.value=data?.public_path?location.origin+data.public_path:'';
+    open.hidden=!data?.published;
+    if(data?.published)open.href=data.public_path;
+    status.textContent=data?`${data.published?'Published':'Private draft'} · Website version ${data.revision}. ${data.stale?'The event changed since this draft was saved; review its date and details. ':''}Private edits never update the published snapshot automatically.`:'Open a saved event to create an invitation.';
+    sync();
+  }
+  function accept(result,replace=true){
+    data=result;
+    loaded=true;
+    if(replace){fill(data.draft);state.websiteDirty=false;}previewHash=null;
+    approval.checked=false;
+    pending.clear();
+    meta();
+  }
+  async function load(replace=false){if(!state.workspace)return;
+  const id=state.workspace.id,
+  current=++token;
+  root.setAttribute('aria-busy','true');
+  status.textContent='Opening your private invitation draft…';
+  try{
+    const result=await(await api(`/api/events/${id}/website`,undefined,'GET')).json();
+    if(current!==token||state.workspace?.id!==id)return;
+    if(state.websiteDirty&&!replace){
+      status.textContent='Saved state changed or was refreshed; your edits are retained. Reopen the saved draft to refresh its version before saving.';
+      return;
+    }suggested=result.suggested_schedule;
+    clear(importList);
+    for(const [index,item]of suggested.entries())importList.append(
+      h('label',{},h('input',{type:'checkbox',value:index}),`${item.title} · ${item.date}`)
+    );
+    if(!suggested.length)importList.append(
+      h(
+        'p',
+        {
+          class:'muted',
+          text:'No saved operational start times. Existing event-day milestones are included below; add further public details as needed.'
+        }
+      )
+    );
+    accept(result);
+    error.hidden=true;
+  }
+    catch(ex){if(current===token)fail(ex);}finally{
+      if(current===token){root.removeAttribute('aria-busy');sync();}
+    }}
+  async function action(kind,fn){
+    if(!state.workspace||state.workspaceBusy||!loaded)return;
+    if(kind!=='unpublish'&&hasUnsavedDetails(false,false,false,false,true)){
+      fail(Error('Save or cancel other workspace edits first.'));return;
+    }const id=state.workspace.id;
+    setWorkspaceBusy(true);
+    error.hidden=true;
+    try{await fn(id);}catch(ex){
+      fail(ex);
+      status.textContent='Action not confirmed. Your inputs are retained; reopen after a revision conflict.';
+    }finally{setWorkspaceBusy(false);sync();}
+  }
+  const requestId=kind=>{
+    if(!pending.has(kind))pending.set(kind,crypto.randomUUID());return pending.get(kind);
+  };
   const body=kind=>({revision:data.revision,event_revision:data.event_revision,request_id:requestId(kind)});
-  async function saveDraft(){if(!form.reportValidity())return;await action('save',async id=>{const result=await(await api(`/api/events/${id}/website`,{...body('save'),config:config()},'PUT')).json();if(state.workspace?.id===id){accept(result);dispose?.();dispose=null;clear(previewRoot);clear(disclosure);}});}
-  function disclose(publicData,path){clear(disclosure);const list=h('ul');for(const text of [`Title: ${publicData.title}`,`Date: ${publicData.event_date} · ${publicData.timezone}`,`Theme: ${themeNames[publicData.theme]}`,`Hosts: ${publicData.hosts||'Hidden'}`,`Venue: ${publicData.venue?[publicData.venue.name,publicData.venue.address,publicData.venue.city].filter(Boolean).join(', '):'Hidden'}`,`Schedule: ${publicData.schedule.length} entries`, `Dress code: ${publicData.dress_code||'Hidden'}`,`RSVP: ${publicData.rsvp.enabled?`Enabled · max party ${publicData.rsvp.max_attendees} · email ${publicData.rsvp.email_required?'required':'optional'}`:'Disabled'}`,`Public link: ${path?location.origin+path:'Save a draft to reserve its link'}`])list.append(h('li',{text}));disclosure.append(list,h('p',{text:'The welcome, invitation, introduction, chosen cover and visible gallery below are also public. Private planning records, guest lists, budgets and incidents are excluded.'}));}
-  async function previewDraft(){if(!form.reportValidity())return;await action('preview',async id=>{const result=await(await api(`/api/events/${id}/website/preview`,{...body('preview'),config:config()})).json();if(state.workspace?.id!==id)return;dispose?.();dispose=renderEventSite(previewRoot,result.website,{preview:true});previewHash=result.preview_hash;approval.checked=false;disclose(result.website,result.public_path);status.textContent=state.websiteDirty?'Unsaved preview. Save this draft, then preview again before publishing.':'Preview ready. Review the visible information, then explicitly approve publication.';sync();previewRoot.scrollIntoView({block:'start',behavior:'instant'});});}
-  async function publishDraft(){if(publish.disabled)return;await action('publish',async id=>{const result=await(await api(`/api/events/${id}/website/publish`,{...body('publish'),approved:true,preview_hash:previewHash})).json();if(state.workspace?.id===id){accept(result);status.textContent='Invitation published. The approved snapshot is accessible at your public link.';}});}
-  async function unpublishDraft(){if(!data?.published||!confirm('Unpublish this invitation and disable public viewing and RSVP immediately?'))return;await action('unpublish',async id=>{const result=await(await api(`/api/events/${id}/website/unpublish`,{...body('unpublish'),approved:true})).json();if(state.workspace?.id===id){accept(result,!state.websiteDirty);status.textContent='Invitation unpublished. Its stable link is retained for a future approved republication.';}});}
-  async function generateCopy(){if(!form.reportValidity())return;if(!confirm('Replace the editable invitation wording with a new suggestion? Nothing will be saved or published automatically.'))return;await action('content',async id=>{const result=await(await api(`/api/events/${id}/website/content`,{revision:data.revision,event_revision:data.event_revision,config:config(),tone:tone.value})).json();if(state.workspace?.id!==id)return;welcome.value=result.welcome;invitation.value=result.invitation;description.value=result.description;instructions.value=result.rsvp_instructions;mark();status.textContent=`${result.source==='gemini'?'Gemini-selected copy variants':'Built-in invitation copy'} added to the editor. Review, save and preview before publishing.`;});}
-  function reset(){const id=state.workspace?.id||'';if(id!==context){context=id;token++;data=null;loaded=false;state.websiteDirty=false;previewHash=null;pending.clear();form.reset();scheduleRows=[];clear(schedule);clear(importList);clear(disclosure);dispose?.();dispose=null;clear(previewRoot);error.hidden=true;root.removeAttribute('aria-busy');meta();}}
-  document.addEventListener('planora:view',event=>{reset();if(event.detail==='website'&&(!loaded||!state.websiteDirty))load();});
-  document.addEventListener('planora:workspace',()=>{reset();if(location.hash.endsWith('/website')&&!state.websiteDirty)load();});
+  async function saveDraft(){
+    if(!form.reportValidity())return;
+    await action(
+      'save',
+      async id=>{
+        const result=await(await api(`/api/events/${id}/website`,{...body('save'),config:config()},'PUT')).json();
+        if(state.workspace?.id===id){
+          accept(result);dispose?.();dispose=null;clear(previewRoot);clear(disclosure);
+        }
+      }
+    );
+  }
+  function disclose(publicData,path){
+    clear(disclosure);
+    const list=h('ul');
+    for(
+      const text of [
+        `Title: ${publicData.title}`,
+        `Date: ${publicData.event_date} · ${publicData.timezone}`,
+        `Theme: ${themeNames[publicData.theme]}`,
+        `Hosts: ${publicData.hosts||'Hidden'}`,
+        `Venue: ${publicData.venue?[publicData.venue.name,publicData.venue.address,publicData.venue.city].filter(Boolean).join(', '):'Hidden'}`,
+        `Schedule: ${publicData.schedule.length} entries`,
+        `Dress code: ${publicData.dress_code||'Hidden'}`,
+        `RSVP: ${publicData.rsvp.enabled?`Enabled · max party ${publicData.rsvp.max_attendees} · email ${publicData.rsvp.email_required?'required':'optional'}`:'Disabled'}`,
+        `Public link: ${path?location.origin+path:'Save a draft to reserve its link'}`
+      ]
+    )list.append(h('li',{text}));
+    disclosure.append(
+      list,
+      h(
+        'p',
+        {
+          text:'The welcome, invitation, introduction, chosen cover and visible gallery below are also public. Private planning records, guest lists, budgets and incidents are excluded.'
+        }
+      )
+    );
+  }
+  async function previewDraft(){
+    if(!form.reportValidity())return;
+    await action(
+      'preview',
+      async id=>{
+        const result=await(
+          await api(`/api/events/${id}/website/preview`,{...body('preview'),config:config()})
+        ).json();
+        if(state.workspace?.id!==id)return;
+        dispose?.();
+        dispose=renderEventSite(previewRoot,result.website,{preview:true});
+        previewHash=result.preview_hash;
+        approval.checked=false;
+        disclose(result.website,result.public_path);
+        status.textContent=state.websiteDirty?'Unsaved preview. Save this draft, then preview again before publishing.':'Preview ready. Review the visible information, then explicitly approve publication.';
+        sync();
+        previewRoot.scrollIntoView({block:'start',behavior:'instant'});
+      }
+    );
+  }
+  async function publishDraft(){
+    if(publish.disabled)return;
+    await action(
+      'publish',
+      async id=>{
+        const result=await(
+          await api(
+            `/api/events/${id}/website/publish`,{...body('publish'),approved:true,preview_hash:previewHash}
+          )
+        ).json();
+        if(state.workspace?.id===id){
+          accept(result);
+          status.textContent='Invitation published. The approved snapshot is accessible at your public link.';
+        }
+      }
+    );
+  }
+  async function unpublishDraft(){
+    if(
+      !data?.published||!confirm('Unpublish this invitation and disable public viewing and RSVP immediately?')
+    )return;
+    await action(
+      'unpublish',
+      async id=>{
+        const result=await(
+          await api(`/api/events/${id}/website/unpublish`,{...body('unpublish'),approved:true})
+        ).json();
+        if(state.workspace?.id===id){
+          accept(result,!state.websiteDirty);
+          status.textContent='Invitation unpublished. Its stable link is retained for a future approved republication.';
+        }
+      }
+    );
+  }
+  async function generateCopy(){
+    if(!form.reportValidity())return;
+    if(
+      !confirm(
+        'Replace the editable invitation wording with a new suggestion? Nothing will be saved or published automatically.'
+      )
+    )return;
+    await action(
+      'content',
+      async id=>{
+        const result=await(
+          await api(
+            `/api/events/${id}/website/content`,
+            {revision:data.revision,event_revision:data.event_revision,config:config(),tone:tone.value}
+          )
+        ).json();
+        if(state.workspace?.id!==id)return;
+        welcome.value=result.welcome;
+        invitation.value=result.invitation;
+        description.value=result.description;
+        instructions.value=result.rsvp_instructions;
+        mark();
+        status.textContent=`${result.source==='gemini'?'Gemini-selected copy variants':'Built-in invitation copy'} added to the editor. Review, save and preview before publishing.`;
+      }
+    );
+  }
+  function reset(){
+    const id=state.workspace?.id||'';
+    if(id!==context){
+      context=id;
+      token++;
+      data=null;
+      loaded=false;
+      state.websiteDirty=false;
+      previewHash=null;
+      pending.clear();
+      form.reset();
+      scheduleRows=[];
+      clear(schedule);
+      clear(importList);
+      clear(disclosure);
+      dispose?.();
+      dispose=null;
+      clear(previewRoot);
+      error.hidden=true;
+      root.removeAttribute('aria-busy');
+      meta();
+    }
+  }
+  document.addEventListener(
+    'planora:view',event=>{reset();if(event.detail==='website'&&(!loaded||!state.websiteDirty))load();}
+  );
+  document.addEventListener(
+    'planora:workspace',()=>{reset();if(location.hash.endsWith('/website')&&!state.websiteDirty)load();}
+  );
   document.addEventListener('planora:busy',()=>{reset();sync();});reset();sync();
 }
