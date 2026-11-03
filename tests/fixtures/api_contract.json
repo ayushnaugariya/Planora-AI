@@ -895,7 +895,7 @@
             "type": "string"
           },
           "currency": {
-            "default": "USD",
+            "default": "INR",
             "enum": [
               "INR",
               "USD",
@@ -2072,7 +2072,7 @@
             "type": "string"
           },
           "currency": {
-            "default": "USD",
+            "default": "INR",
             "enum": [
               "INR",
               "USD",

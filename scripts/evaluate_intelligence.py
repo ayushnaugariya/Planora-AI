@@ -34,8 +34,8 @@ def evaluate_case(case):
                 assert card.preview.original_budget == base.budget_summary
                 assert card.preview.proposed_budget.reconciled
                 if case["type"] == "budget_reduction":
-                    assert card.preview.proposed_budget.total_budget == 19500
-                    assert card.preview.proposed_budget.planned_allocation == 19500
+                    assert card.preview.proposed_budget.total_budget == 1499500
+                    assert card.preview.proposed_budget.planned_allocation == 1499500
                 elif case["type"] == "guest_count":
                     assert card.preview.proposed_values["guest_count"] == 90
                 else:

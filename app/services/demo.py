@@ -15,8 +15,8 @@ def fictional_workspace(event_id: UUID) -> EventWorkspace:
     details = EventDetails(
         event_type="birthday",
         title="A midsummer gathering",
-        currency="USD",
-        budget=20000,
+        currency="INR",
+        budget=1500000,
         guest_count=60,
         event_date=date.today() + timedelta(days=90),
         priorities=["food"],

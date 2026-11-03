@@ -14,7 +14,7 @@ export function mountDemo(){
   }
   const heroLink=h('a',{class:'text-link',href:'#experience',text:'Explore budget & recovery →'});
   document.querySelector('.hero-note>div').append(heroLink);
-  const money=value=>financialMoney(value,'USD');
+  const money=value=>financialMoney(value,'INR');
   const colors=['#7863b4','#aa9171','#80958b','#b99ba5','#8994a5','#c8b18c','#a6b39e','#a898ba','#c8c0ad'];
   function allocationChart(event){
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');

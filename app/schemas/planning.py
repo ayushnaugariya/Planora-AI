@@ -27,7 +27,7 @@ class PlanRequest(BaseModel):
     event_date: date
     guest_count: int = Field(ge=2, le=5000)
     budget: int = Field(ge=1000, le=100_000_000, description="Whole currency units")
-    currency: Currency = "USD"
+    currency: Currency = "INR"
     city: str = Field(default="", max_length=60)
     formality: Formality = "semi_formal"
     priorities: list[str] = Field(default_factory=list, max_length=6)

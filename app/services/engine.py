@@ -125,15 +125,15 @@ PRIORITY_SYNONYMS: dict[str, tuple[str, ...]] = {
 
 PRIORITY_BOOST = 1.3
 
-# Rough minimum viable spend per guest, in USD, before formality scaling.
-BASE_PER_GUEST_USD = {
-    "wedding": 40.0,
-    "birthday": 15.0,
-    "community": 6.0,
-    "anniversary": 30.0,
-    "baby_shower": 18.0,
+# Rough minimum viable spend per guest, in INR, before formality scaling.
+BASE_PER_GUEST_INR = {
+    "wedding": 3400.0,
+    "birthday": 1275.0,
+    "community": 510.0,
+    "anniversary": 2550.0,
+    "baby_shower": 1530.0,
 }
-FX_PER_USD = {"USD": 1.0, "EUR": 0.92, "GBP": 0.79, "INR": 85.0}
+FX_PER_INR = {"INR": 1.0, "USD": 1 / 85.0, "EUR": 0.92 / 85.0, "GBP": 0.79 / 85.0}
 FORMALITY_MULT = {"casual": 0.7, "semi_formal": 1.0, "formal": 1.4}
 
 # --------------------------------------------------------------------------- #
@@ -498,7 +498,7 @@ class Core:
 
 
 def per_guest_threshold(req: PlanRequest) -> float:
-    return BASE_PER_GUEST_USD[req.event_type] * FX_PER_USD[req.currency] * FORMALITY_MULT[req.formality]
+    return BASE_PER_GUEST_INR[req.event_type] * FX_PER_INR[req.currency] * FORMALITY_MULT[req.formality]
 
 
 def assess(req: PlanRequest, today: date, compressed: bool, available: int) -> tuple[int, list[Warning_]]:

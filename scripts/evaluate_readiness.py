@@ -19,7 +19,7 @@ def evaluate_case(case):
     if kind == "missing":
         base.expenses = []
     elif kind == "exposure":
-        base.expenses[0].committed_amount = Decimal("100000.01")
+        base.expenses[0].committed_amount = Decimal("10000000.01")
         base.expenses[0].cancelled = True
     elif kind == "cancelled":
         base.vendors[0].booking_status = "cancelled"

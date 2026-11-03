@@ -49,7 +49,7 @@ import {state} from './state.js';
   function setCurrency(code) {
     try {
       const f = new Intl.NumberFormat(
-        undefined, { style: "currency", currency: code, maximumFractionDigits: 0 }
+        "en-IN", { style: "currency", currency: code, maximumFractionDigits: 0 }
       );
       money = (n) => f.format(n);
     } catch { money = (n) => `${code} ${Math.round(n)}`; }
@@ -61,7 +61,7 @@ import {state} from './state.js';
     const units = BigInt(whole);
     const negativeFraction = negative && units === 0n;
     const formatter = new Intl.NumberFormat(
-      undefined, { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      "en-IN", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
     );
     return formatter.formatToParts(negativeFraction ? -1n : negative ? -units : units).map((part) => {
       if (part.type === "fraction") return fraction.padEnd(2, "0").slice(0, 2);
